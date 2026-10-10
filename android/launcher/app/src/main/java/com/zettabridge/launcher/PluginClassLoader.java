@@ -12,14 +12,16 @@ final class PluginClassLoader extends DexClassLoader {
     private final PluginRecord record;
     private final File proxyTemplate;
     private final ClassLoader bridgeLoader;
+    private final String hostPackage;
 
     PluginClassLoader(PluginRecord record, File codeCache, File proxyTemplate, ClassLoader bootLoader,
-            ClassLoader bridgeLoader) {
+            ClassLoader bridgeLoader, String hostPackage) {
         super(dexPath(record), codeCache.getPath(), record.isTranslated() ? null : record.libDir().getPath(),
                 bootLoader);
         this.record = record;
         this.proxyTemplate = proxyTemplate;
         this.bridgeLoader = bridgeLoader;
+        this.hostPackage = hostPackage;
     }
 
     // Android puts the Apache HTTP client on the class path of apps targeting below API 28;
@@ -70,7 +72,7 @@ final class PluginClassLoader extends DexClassLoader {
             // package (Marmalade loads lib<last package segment>.so) asks for the launcher's
             // segment instead. Give it the library its own package name points at.
             String own = lastSegment(record.packageName);
-            if (library == null && name.equals(lastSegment(PluginClassLoader.class.getPackage().getName()))
+            if (library == null && name.equals(lastSegment(hostPackage))
                     && !name.equals(own)) {
                 library = resolve(own);
             }

@@ -23,7 +23,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.zettabridge.launcher"
+        applicationId = "etonedemid.afterlife.manager"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
