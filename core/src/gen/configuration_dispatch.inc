@@ -4,162 +4,162 @@
 // sees it, and nothing here dereferences a value the guest chose.
 case ZB_CONFIG_HC_AConfiguration_copy: {
     void* dest = live_config(regs[0]);
-    if (dest == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_copy", regs[0]); }
+    if (dest == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_copy", bad); }
     void* src = live_config(regs[1]);
-    if (src == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_copy", regs[1]); }
+    if (src == nullptr) { const std::uint32_t bad = regs[1]; regs[0] = regs[1] = 0; return reject("AConfiguration_copy", bad); }
     backend_.AConfiguration_copy(dest, src);
     regs[0] = 0;
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_diff: {
     void* config1 = live_config(regs[0]);
-    if (config1 == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_diff", regs[0]); }
+    if (config1 == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_diff", bad); }
     void* config2 = live_config(regs[1]);
-    if (config2 == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_diff", regs[1]); }
+    if (config2 == nullptr) { const std::uint32_t bad = regs[1]; regs[0] = regs[1] = 0; return reject("AConfiguration_diff", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_diff(config1, config2));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getDensity: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getDensity", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getDensity", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getDensity(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getGrammaticalGender: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getGrammaticalGender", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getGrammaticalGender", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getGrammaticalGender(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getKeyboard: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getKeyboard", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getKeyboard", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getKeyboard(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getKeysHidden: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getKeysHidden", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getKeysHidden", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getKeysHidden(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getLayoutDirection: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getLayoutDirection", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getLayoutDirection", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getLayoutDirection(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getMcc: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getMcc", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getMcc", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getMcc(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getMnc: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getMnc", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getMnc", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getMnc(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getNavHidden: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getNavHidden", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getNavHidden", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getNavHidden(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getNavigation: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getNavigation", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getNavigation", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getNavigation(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getOrientation: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getOrientation", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getOrientation", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getOrientation(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getScreenHeightDp: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenHeightDp", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenHeightDp", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getScreenHeightDp(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getScreenLong: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenLong", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenLong", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getScreenLong(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getScreenRound: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenRound", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenRound", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getScreenRound(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getScreenSize: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenSize", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenSize", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getScreenSize(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getScreenWidthDp: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenWidthDp", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getScreenWidthDp", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getScreenWidthDp(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getSdkVersion: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getSdkVersion", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getSdkVersion", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getSdkVersion(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getSmallestScreenWidthDp: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getSmallestScreenWidthDp", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getSmallestScreenWidthDp", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getSmallestScreenWidthDp(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getTouchscreen: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getTouchscreen", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getTouchscreen", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getTouchscreen(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getUiModeNight: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getUiModeNight", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getUiModeNight", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getUiModeNight(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_getUiModeType: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_getUiModeType", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_getUiModeType", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_getUiModeType(config));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_isBetterThan: {
     void* base = live_config(regs[0]);
-    if (base == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_isBetterThan", regs[0]); }
+    if (base == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_isBetterThan", bad); }
     void* test = live_config(regs[1]);
-    if (test == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_isBetterThan", regs[1]); }
+    if (test == nullptr) { const std::uint32_t bad = regs[1]; regs[0] = regs[1] = 0; return reject("AConfiguration_isBetterThan", bad); }
     void* requested = live_config(regs[2]);
-    if (requested == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_isBetterThan", regs[2]); }
+    if (requested == nullptr) { const std::uint32_t bad = regs[2]; regs[0] = regs[1] = 0; return reject("AConfiguration_isBetterThan", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_isBetterThan(base, test, requested));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_match: {
     void* base = live_config(regs[0]);
-    if (base == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_match", regs[0]); }
+    if (base == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_match", bad); }
     void* requested = live_config(regs[1]);
-    if (requested == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_match", regs[1]); }
+    if (requested == nullptr) { const std::uint32_t bad = regs[1]; regs[0] = regs[1] = 0; return reject("AConfiguration_match", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AConfiguration_match(base, requested));
     return true;
 }
 case ZB_CONFIG_HC_AConfiguration_setDensity: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setDensity", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setDensity", bad); }
     const std::int32_t density = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setDensity(config, density);
     regs[0] = 0;
@@ -167,7 +167,7 @@ case ZB_CONFIG_HC_AConfiguration_setDensity: {
 }
 case ZB_CONFIG_HC_AConfiguration_setGrammaticalGender: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setGrammaticalGender", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setGrammaticalGender", bad); }
     const std::int32_t value = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setGrammaticalGender(config, value);
     regs[0] = 0;
@@ -175,7 +175,7 @@ case ZB_CONFIG_HC_AConfiguration_setGrammaticalGender: {
 }
 case ZB_CONFIG_HC_AConfiguration_setKeyboard: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setKeyboard", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setKeyboard", bad); }
     const std::int32_t keyboard = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setKeyboard(config, keyboard);
     regs[0] = 0;
@@ -183,7 +183,7 @@ case ZB_CONFIG_HC_AConfiguration_setKeyboard: {
 }
 case ZB_CONFIG_HC_AConfiguration_setKeysHidden: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setKeysHidden", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setKeysHidden", bad); }
     const std::int32_t keysHidden = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setKeysHidden(config, keysHidden);
     regs[0] = 0;
@@ -191,7 +191,7 @@ case ZB_CONFIG_HC_AConfiguration_setKeysHidden: {
 }
 case ZB_CONFIG_HC_AConfiguration_setLayoutDirection: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setLayoutDirection", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setLayoutDirection", bad); }
     const std::int32_t value = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setLayoutDirection(config, value);
     regs[0] = 0;
@@ -199,7 +199,7 @@ case ZB_CONFIG_HC_AConfiguration_setLayoutDirection: {
 }
 case ZB_CONFIG_HC_AConfiguration_setMcc: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setMcc", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setMcc", bad); }
     const std::int32_t mcc = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setMcc(config, mcc);
     regs[0] = 0;
@@ -207,7 +207,7 @@ case ZB_CONFIG_HC_AConfiguration_setMcc: {
 }
 case ZB_CONFIG_HC_AConfiguration_setMnc: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setMnc", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setMnc", bad); }
     const std::int32_t mnc = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setMnc(config, mnc);
     regs[0] = 0;
@@ -215,7 +215,7 @@ case ZB_CONFIG_HC_AConfiguration_setMnc: {
 }
 case ZB_CONFIG_HC_AConfiguration_setNavHidden: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setNavHidden", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setNavHidden", bad); }
     const std::int32_t navHidden = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setNavHidden(config, navHidden);
     regs[0] = 0;
@@ -223,7 +223,7 @@ case ZB_CONFIG_HC_AConfiguration_setNavHidden: {
 }
 case ZB_CONFIG_HC_AConfiguration_setNavigation: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setNavigation", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setNavigation", bad); }
     const std::int32_t navigation = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setNavigation(config, navigation);
     regs[0] = 0;
@@ -231,7 +231,7 @@ case ZB_CONFIG_HC_AConfiguration_setNavigation: {
 }
 case ZB_CONFIG_HC_AConfiguration_setOrientation: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setOrientation", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setOrientation", bad); }
     const std::int32_t orientation = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setOrientation(config, orientation);
     regs[0] = 0;
@@ -239,7 +239,7 @@ case ZB_CONFIG_HC_AConfiguration_setOrientation: {
 }
 case ZB_CONFIG_HC_AConfiguration_setScreenHeightDp: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenHeightDp", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenHeightDp", bad); }
     const std::int32_t value = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setScreenHeightDp(config, value);
     regs[0] = 0;
@@ -247,7 +247,7 @@ case ZB_CONFIG_HC_AConfiguration_setScreenHeightDp: {
 }
 case ZB_CONFIG_HC_AConfiguration_setScreenLong: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenLong", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenLong", bad); }
     const std::int32_t screenLong = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setScreenLong(config, screenLong);
     regs[0] = 0;
@@ -255,7 +255,7 @@ case ZB_CONFIG_HC_AConfiguration_setScreenLong: {
 }
 case ZB_CONFIG_HC_AConfiguration_setScreenRound: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenRound", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenRound", bad); }
     const std::int32_t screenRound = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setScreenRound(config, screenRound);
     regs[0] = 0;
@@ -263,7 +263,7 @@ case ZB_CONFIG_HC_AConfiguration_setScreenRound: {
 }
 case ZB_CONFIG_HC_AConfiguration_setScreenSize: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenSize", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenSize", bad); }
     const std::int32_t screenSize = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setScreenSize(config, screenSize);
     regs[0] = 0;
@@ -271,7 +271,7 @@ case ZB_CONFIG_HC_AConfiguration_setScreenSize: {
 }
 case ZB_CONFIG_HC_AConfiguration_setScreenWidthDp: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenWidthDp", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setScreenWidthDp", bad); }
     const std::int32_t value = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setScreenWidthDp(config, value);
     regs[0] = 0;
@@ -279,7 +279,7 @@ case ZB_CONFIG_HC_AConfiguration_setScreenWidthDp: {
 }
 case ZB_CONFIG_HC_AConfiguration_setSdkVersion: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setSdkVersion", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setSdkVersion", bad); }
     const std::int32_t sdkVersion = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setSdkVersion(config, sdkVersion);
     regs[0] = 0;
@@ -287,7 +287,7 @@ case ZB_CONFIG_HC_AConfiguration_setSdkVersion: {
 }
 case ZB_CONFIG_HC_AConfiguration_setSmallestScreenWidthDp: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setSmallestScreenWidthDp", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setSmallestScreenWidthDp", bad); }
     const std::int32_t value = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setSmallestScreenWidthDp(config, value);
     regs[0] = 0;
@@ -295,7 +295,7 @@ case ZB_CONFIG_HC_AConfiguration_setSmallestScreenWidthDp: {
 }
 case ZB_CONFIG_HC_AConfiguration_setTouchscreen: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setTouchscreen", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setTouchscreen", bad); }
     const std::int32_t touchscreen = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setTouchscreen(config, touchscreen);
     regs[0] = 0;
@@ -303,7 +303,7 @@ case ZB_CONFIG_HC_AConfiguration_setTouchscreen: {
 }
 case ZB_CONFIG_HC_AConfiguration_setUiModeNight: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setUiModeNight", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setUiModeNight", bad); }
     const std::int32_t uiModeNight = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setUiModeNight(config, uiModeNight);
     regs[0] = 0;
@@ -311,7 +311,7 @@ case ZB_CONFIG_HC_AConfiguration_setUiModeNight: {
 }
 case ZB_CONFIG_HC_AConfiguration_setUiModeType: {
     void* config = live_config(regs[0]);
-    if (config == nullptr) { regs[0] = regs[1] = 0; return reject("AConfiguration_setUiModeType", regs[0]); }
+    if (config == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AConfiguration_setUiModeType", bad); }
     const std::int32_t uiModeType = static_cast<std::int32_t>(regs[1]);
     backend_.AConfiguration_setUiModeType(config, uiModeType);
     regs[0] = 0;

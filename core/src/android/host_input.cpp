@@ -206,7 +206,10 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
     case ZB_INPUT_HC_AInputQueue_attachLooper: {
         void* queue = live_queue(regs[0]);
         if (queue == nullptr) { regs[0] = 0; return reject("AInputQueue_attachLooper", regs[0]); }
-        // regs[1] is the guest's looper, regs[3] and regs[4] its callback and data. A host
+        // regs[1] is the guest's looper, regs[3] its callback. The data pointer is the fifth
+        // argument, so under the AAPCS it is on the guest stack at [sp], not in r4: r4 is just
+        // whatever the caller kept there (the NDK glue keeps its android_app in it, and handing
+        // that back from the poll makes the glue call onInputEvent as if it were a source). A host
         // AInputQueue has no descriptor we could poll, so this thread must first have a real
         // Android looper; the queue then goes to it and the guest's own poll picks it up.
         std::uint64_t real_looper = 0;
@@ -215,6 +218,12 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
             runtime_report().note_jni_detail("input-attach", "no real looper on this thread", true);
             log("AInputQueue_attachLooper: this thread has no real looper, so the queue will not "
                 "deliver");
+        }
+        std::uint32_t data = 0;
+        if (const std::uint8_t* arg = runtime_.memory().host_ptr(regs[13], sizeof data, kPageRead)) {
+            std::memcpy(&data, arg, sizeof data);
+        } else {
+            log("AInputQueue_attachLooper: the data argument at sp 0x%08x is unreadable", regs[13]);
         }
         if (regs[3] != 0) {
             // The guest wants its own callback run by the looper. Unity's glue passes none and
@@ -225,10 +234,10 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
         // The guest's data travels as an opaque value and comes back from the poll unchanged, so
         // the guest recognizes its own source. Nothing of the host crosses here.
         backend_.queue_attach_looper(queue, static_cast<std::int32_t>(regs[2]),
-                                     reinterpret_cast<void*>(static_cast<std::uintptr_t>(regs[4])), real_looper);
+                                     reinterpret_cast<void*>(static_cast<std::uintptr_t>(data)), real_looper);
         {
             std::lock_guard<std::mutex> lock(mutex_);
-            attachments_[regs[0]] = Attachment{real_looper, static_cast<std::int32_t>(regs[2]), regs[4]};
+            attachments_[regs[0]] = Attachment{real_looper, static_cast<std::int32_t>(regs[2]), data};
         }
         char detail[160];
         std::snprintf(detail, sizeof detail, "ident %u looper 0x%08x owner-tid %d caller-tid %d%s",

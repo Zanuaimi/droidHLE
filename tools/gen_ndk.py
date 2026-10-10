@@ -27,8 +27,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import gen_stubs  # noqa: E402
 
-INCLUDE = os.path.join(os.path.expanduser("~"), "android-ndk-r29", "toolchains", "llvm", "prebuilt",
-                       "linux-arm64", "sysroot", "usr", "include", "android")
+INCLUDE = os.path.join(gen_stubs.INCLUDE, "android")  # honours NDK / NDK_HOST like gen_stubs
 
 # Objects the guest only ever sees as 32-bit handles, and the name of the lookup the host unit
 # provides for each. A lookup that returns nullptr fails the call before the backend sees it.
@@ -270,8 +269,9 @@ def dispatch_include(family, entries):
         for position, (host_type, kind, parameter_name) in enumerate(arguments):
             if kind != "scalar":
                 lines.append("    %s %s = %s(regs[%d]);" % (host_type, parameter_name, kind, position))
-                lines.append("    if (%s == nullptr) { regs[0] = regs[1] = 0; return reject(\"%s\", regs[%d]); }" %
-                             (parameter_name, name, position))
+                # Report the handle the guest passed: regs[0] is zeroed for the result first.
+                lines.append("    if (%s == nullptr) { const std::uint32_t bad = regs[%d]; regs[0] = regs[1] = 0; "
+                             "return reject(\"%s\", bad); }" % (parameter_name, position, name))
             else:
                 lines.append("    const %s %s = static_cast<%s>(regs[%d]);" %
                              (host_type, parameter_name, host_type, position))

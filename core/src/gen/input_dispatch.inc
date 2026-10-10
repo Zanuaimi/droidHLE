@@ -4,31 +4,31 @@
 // sees it, and nothing here dereferences a value the guest chose.
 case ZB_INPUT_HC_AInputEvent_getDeviceId: {
     const void* event = live_event(regs[0]);
-    if (event == nullptr) { regs[0] = regs[1] = 0; return reject("AInputEvent_getDeviceId", regs[0]); }
+    if (event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AInputEvent_getDeviceId", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AInputEvent_getDeviceId(event));
     return true;
 }
 case ZB_INPUT_HC_AInputEvent_getSource: {
     const void* event = live_event(regs[0]);
-    if (event == nullptr) { regs[0] = regs[1] = 0; return reject("AInputEvent_getSource", regs[0]); }
+    if (event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AInputEvent_getSource", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AInputEvent_getSource(event));
     return true;
 }
 case ZB_INPUT_HC_AInputEvent_getType: {
     const void* event = live_event(regs[0]);
-    if (event == nullptr) { regs[0] = regs[1] = 0; return reject("AInputEvent_getType", regs[0]); }
+    if (event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AInputEvent_getType", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AInputEvent_getType(event));
     return true;
 }
 case ZB_INPUT_HC_AKeyEvent_getAction: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getAction", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getAction", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AKeyEvent_getAction(key_event));
     return true;
 }
 case ZB_INPUT_HC_AKeyEvent_getDownTime: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getDownTime", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getDownTime", bad); }
     const std::uint64_t result = static_cast<std::uint64_t>(backend_.AKeyEvent_getDownTime(key_event));
     regs[0] = static_cast<std::uint32_t>(result);
     regs[1] = static_cast<std::uint32_t>(result >> 32);
@@ -36,7 +36,7 @@ case ZB_INPUT_HC_AKeyEvent_getDownTime: {
 }
 case ZB_INPUT_HC_AKeyEvent_getEventTime: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getEventTime", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getEventTime", bad); }
     const std::uint64_t result = static_cast<std::uint64_t>(backend_.AKeyEvent_getEventTime(key_event));
     regs[0] = static_cast<std::uint32_t>(result);
     regs[1] = static_cast<std::uint32_t>(result >> 32);
@@ -44,49 +44,49 @@ case ZB_INPUT_HC_AKeyEvent_getEventTime: {
 }
 case ZB_INPUT_HC_AKeyEvent_getFlags: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getFlags", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getFlags", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AKeyEvent_getFlags(key_event));
     return true;
 }
 case ZB_INPUT_HC_AKeyEvent_getKeyCode: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getKeyCode", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getKeyCode", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AKeyEvent_getKeyCode(key_event));
     return true;
 }
 case ZB_INPUT_HC_AKeyEvent_getMetaState: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getMetaState", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getMetaState", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AKeyEvent_getMetaState(key_event));
     return true;
 }
 case ZB_INPUT_HC_AKeyEvent_getRepeatCount: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getRepeatCount", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getRepeatCount", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AKeyEvent_getRepeatCount(key_event));
     return true;
 }
 case ZB_INPUT_HC_AKeyEvent_getScanCode: {
     const void* key_event = live_event(regs[0]);
-    if (key_event == nullptr) { regs[0] = regs[1] = 0; return reject("AKeyEvent_getScanCode", regs[0]); }
+    if (key_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AKeyEvent_getScanCode", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AKeyEvent_getScanCode(key_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getAction: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getAction", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getAction", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getAction(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getActionButton: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getActionButton", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getActionButton", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getActionButton(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getAxisValue: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getAxisValue", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getAxisValue", bad); }
     const std::int32_t axis = static_cast<std::int32_t>(regs[1]);
     const std::size_t pointer_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -96,19 +96,19 @@ case ZB_INPUT_HC_AMotionEvent_getAxisValue: {
 }
 case ZB_INPUT_HC_AMotionEvent_getButtonState: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getButtonState", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getButtonState", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getButtonState(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getClassification: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getClassification", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getClassification", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getClassification(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getDownTime: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getDownTime", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getDownTime", bad); }
     const std::uint64_t result = static_cast<std::uint64_t>(backend_.AMotionEvent_getDownTime(motion_event));
     regs[0] = static_cast<std::uint32_t>(result);
     regs[1] = static_cast<std::uint32_t>(result >> 32);
@@ -116,13 +116,13 @@ case ZB_INPUT_HC_AMotionEvent_getDownTime: {
 }
 case ZB_INPUT_HC_AMotionEvent_getEdgeFlags: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getEdgeFlags", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getEdgeFlags", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getEdgeFlags(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getEventTime: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getEventTime", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getEventTime", bad); }
     const std::uint64_t result = static_cast<std::uint64_t>(backend_.AMotionEvent_getEventTime(motion_event));
     regs[0] = static_cast<std::uint32_t>(result);
     regs[1] = static_cast<std::uint32_t>(result >> 32);
@@ -130,13 +130,13 @@ case ZB_INPUT_HC_AMotionEvent_getEventTime: {
 }
 case ZB_INPUT_HC_AMotionEvent_getFlags: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getFlags", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getFlags", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getFlags(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalAxisValue: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalAxisValue", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalAxisValue", bad); }
     const std::int32_t axis = static_cast<std::int32_t>(regs[1]);
     const std::size_t pointer_index = static_cast<std::size_t>(regs[2]);
     const std::size_t history_index = static_cast<std::size_t>(regs[3]);
@@ -147,7 +147,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalAxisValue: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalEventTime: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalEventTime", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalEventTime", bad); }
     const std::size_t history_index = static_cast<std::size_t>(regs[1]);
     const std::uint64_t result = static_cast<std::uint64_t>(backend_.AMotionEvent_getHistoricalEventTime(motion_event, history_index));
     regs[0] = static_cast<std::uint32_t>(result);
@@ -156,7 +156,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalEventTime: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalOrientation: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalOrientation", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalOrientation", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -166,7 +166,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalOrientation: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalPressure: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalPressure", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalPressure", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -176,7 +176,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalPressure: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalRawX: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalRawX", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalRawX", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -186,7 +186,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalRawX: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalRawY: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalRawY", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalRawY", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -196,7 +196,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalRawY: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalSize: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalSize", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalSize", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -206,7 +206,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalSize: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalToolMajor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalToolMajor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalToolMajor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -216,7 +216,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalToolMajor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalToolMinor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalToolMinor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalToolMinor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -226,7 +226,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalToolMinor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalTouchMajor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalTouchMajor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalTouchMajor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -236,7 +236,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalTouchMajor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalTouchMinor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalTouchMinor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalTouchMinor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -246,7 +246,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalTouchMinor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalX: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalX", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalX", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -256,7 +256,7 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalX: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistoricalY: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalY", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistoricalY", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     const std::size_t history_index = static_cast<std::size_t>(regs[2]);
     // AAPCS softfp: a float result comes back in a core register.
@@ -266,19 +266,19 @@ case ZB_INPUT_HC_AMotionEvent_getHistoricalY: {
 }
 case ZB_INPUT_HC_AMotionEvent_getHistorySize: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistorySize", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getHistorySize", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getHistorySize(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getMetaState: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getMetaState", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getMetaState", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getMetaState(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getOrientation: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getOrientation", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getOrientation", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getOrientation(motion_event, pointer_index);
@@ -287,20 +287,20 @@ case ZB_INPUT_HC_AMotionEvent_getOrientation: {
 }
 case ZB_INPUT_HC_AMotionEvent_getPointerCount: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getPointerCount", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getPointerCount", bad); }
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getPointerCount(motion_event));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getPointerId: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getPointerId", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getPointerId", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getPointerId(motion_event, pointer_index));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getPressure: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getPressure", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getPressure", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getPressure(motion_event, pointer_index);
@@ -309,7 +309,7 @@ case ZB_INPUT_HC_AMotionEvent_getPressure: {
 }
 case ZB_INPUT_HC_AMotionEvent_getRawX: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getRawX", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getRawX", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getRawX(motion_event, pointer_index);
@@ -318,7 +318,7 @@ case ZB_INPUT_HC_AMotionEvent_getRawX: {
 }
 case ZB_INPUT_HC_AMotionEvent_getRawY: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getRawY", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getRawY", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getRawY(motion_event, pointer_index);
@@ -327,7 +327,7 @@ case ZB_INPUT_HC_AMotionEvent_getRawY: {
 }
 case ZB_INPUT_HC_AMotionEvent_getSize: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getSize", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getSize", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getSize(motion_event, pointer_index);
@@ -336,7 +336,7 @@ case ZB_INPUT_HC_AMotionEvent_getSize: {
 }
 case ZB_INPUT_HC_AMotionEvent_getToolMajor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getToolMajor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getToolMajor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getToolMajor(motion_event, pointer_index);
@@ -345,7 +345,7 @@ case ZB_INPUT_HC_AMotionEvent_getToolMajor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getToolMinor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getToolMinor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getToolMinor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getToolMinor(motion_event, pointer_index);
@@ -354,14 +354,14 @@ case ZB_INPUT_HC_AMotionEvent_getToolMinor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getToolType: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getToolType", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getToolType", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     regs[0] = static_cast<std::uint32_t>(backend_.AMotionEvent_getToolType(motion_event, pointer_index));
     return true;
 }
 case ZB_INPUT_HC_AMotionEvent_getTouchMajor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getTouchMajor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getTouchMajor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getTouchMajor(motion_event, pointer_index);
@@ -370,7 +370,7 @@ case ZB_INPUT_HC_AMotionEvent_getTouchMajor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getTouchMinor: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getTouchMinor", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getTouchMinor", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getTouchMinor(motion_event, pointer_index);
@@ -379,7 +379,7 @@ case ZB_INPUT_HC_AMotionEvent_getTouchMinor: {
 }
 case ZB_INPUT_HC_AMotionEvent_getX: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getX", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getX", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getX(motion_event, pointer_index);
@@ -388,7 +388,7 @@ case ZB_INPUT_HC_AMotionEvent_getX: {
 }
 case ZB_INPUT_HC_AMotionEvent_getXOffset: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getXOffset", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getXOffset", bad); }
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getXOffset(motion_event);
     std::memcpy(&regs[0], &result, sizeof result);
@@ -396,7 +396,7 @@ case ZB_INPUT_HC_AMotionEvent_getXOffset: {
 }
 case ZB_INPUT_HC_AMotionEvent_getXPrecision: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getXPrecision", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getXPrecision", bad); }
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getXPrecision(motion_event);
     std::memcpy(&regs[0], &result, sizeof result);
@@ -404,7 +404,7 @@ case ZB_INPUT_HC_AMotionEvent_getXPrecision: {
 }
 case ZB_INPUT_HC_AMotionEvent_getY: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getY", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getY", bad); }
     const std::size_t pointer_index = static_cast<std::size_t>(regs[1]);
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getY(motion_event, pointer_index);
@@ -413,7 +413,7 @@ case ZB_INPUT_HC_AMotionEvent_getY: {
 }
 case ZB_INPUT_HC_AMotionEvent_getYOffset: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getYOffset", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getYOffset", bad); }
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getYOffset(motion_event);
     std::memcpy(&regs[0], &result, sizeof result);
@@ -421,7 +421,7 @@ case ZB_INPUT_HC_AMotionEvent_getYOffset: {
 }
 case ZB_INPUT_HC_AMotionEvent_getYPrecision: {
     const void* motion_event = live_event(regs[0]);
-    if (motion_event == nullptr) { regs[0] = regs[1] = 0; return reject("AMotionEvent_getYPrecision", regs[0]); }
+    if (motion_event == nullptr) { const std::uint32_t bad = regs[0]; regs[0] = regs[1] = 0; return reject("AMotionEvent_getYPrecision", bad); }
     // AAPCS softfp: a float result comes back in a core register.
     const float result = backend_.AMotionEvent_getYPrecision(motion_event);
     std::memcpy(&regs[0], &result, sizeof result);
