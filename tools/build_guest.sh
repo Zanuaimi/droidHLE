@@ -13,6 +13,7 @@
 #   guest/zbjni/zbjni.c         -> build/guest/lib/libzbjni.so (guest JNIEnv/JavaVM)
 #   guest/stubs/gen/*.S         -> build/guest/lib/<lib>.so host-call stub libraries
 #   guest/compat/zbcompat.c     -> build/guest/lib/libzbcompat.so
+#   guest/opensles/zbopensles.c -> build/guest/lib/libOpenSLES.so (OpenSL ES, mixed to GuestAudio)
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -90,6 +91,7 @@ done
     -L"$OUT/lib" -landroid
 
 "$CC" -shared -O2 -Wall -Wl,-soname,libzbcompat.so -o "$OUT/lib/libzbcompat.so" "$ROOT/guest/compat/zbcompat.c"
+"$CC" -shared -fPIC -O2 -Wall -Wl,-soname,libOpenSLES.so -o "$OUT/lib/libOpenSLES.so" "$ROOT/guest/opensles/zbopensles.c" -lm
 
 # EGL/window probe for egl_chain_test (Phase 7a Task 9). Built as a shared library so
 # LibraryRuntime can dlopen it and call its "main" symbol directly, the same way the
