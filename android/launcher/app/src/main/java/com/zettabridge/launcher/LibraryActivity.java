@@ -84,7 +84,7 @@ public class LibraryActivity extends Activity {
         column.setPadding(dp(20), dp(28), dp(20), 0);
 
         TextView title = new TextView(this);
-        title.setText("ZettaBridge");
+        title.setText("Afterlife Manager");
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setTextColor(primaryText);
@@ -424,7 +424,7 @@ public class LibraryActivity extends Activity {
         }
         File file = Diagnostics.runtimeReportFile(this);
         String text = report + (file != null ? "\nfile: " + file.getAbsolutePath() + "\n" : "");
-        boolean copied = Diagnostics.copy(this, "ZettaBridge run report", text);
+        boolean copied = Diagnostics.copy(this, "Afterlife run report", text);
 
         TextView view = new TextView(this);
         view.setText(text);

@@ -87,7 +87,7 @@ final class Diagnostics {
         String text = stamp + " " + what + "\n" + Log.getStackTraceString(t);
         Log.e(TAG, what, t);
         appendToFile(context, text);
-        if (copy) copy(context, "ZettaBridge error", text);
+        if (copy) copy(context, "Afterlife error", text);
         return text;
     }
 

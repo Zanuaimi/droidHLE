@@ -46,7 +46,7 @@ final class GuestRuntime {
         try {
             RuntimeBundle.install(app);
         } catch (IOException e) {
-            Diagnostics.report(app, "cannot install the ZettaBridge runtime bundle", e, false);
+            Diagnostics.report(app, "cannot install the Afterlife runtime bundle", e, false);
             return;
         }
         HiddenApi.exemptAll();
