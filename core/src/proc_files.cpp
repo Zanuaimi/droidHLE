@@ -40,11 +40,11 @@ std::string cpuinfo_text() {
         char block[512];
         std::snprintf(block, sizeof block,
                       "processor\t: %d\n"
-                      "model name\t: ARMv8 Processor rev 2 (v8l)\n"
+                      "model name\t: ARMv7 Processor rev 2 (v7l)\n"
                       "BogoMIPS\t: 38.40\n"
                       "Features\t: half thumb fastmult vfp edsp neon vfpv3 tls vfpv4 idiva idivt vfpd32 lpae evtstrm\n"
                       "CPU implementer\t: 0x51\n"
-                      "CPU architecture: 8\n"
+                      "CPU architecture: 7\n"
                       "CPU variant\t: 0x0\n"
                       "CPU part\t: 0x001\n"
                       "CPU revision\t: 2\n\n",

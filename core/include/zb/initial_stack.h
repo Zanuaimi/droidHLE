@@ -14,7 +14,7 @@ struct AuxEntry {
 };
 
 // Builds a kernel-style initial process stack below stack_top (which must be mapped RW below
-// it). Appends AT_RANDOM, AT_PLATFORM ("v8l"), AT_EXECFN and AT_NULL to auxv.
+// it). Appends AT_RANDOM, AT_PLATFORM ("v7l"), AT_EXECFN and AT_NULL to auxv.
 // Layout from sp upward: argc, argv[], NULL, envp[], NULL, auxv pairs, strings.
 // Returns sp (8-byte aligned) or 0 if the data does not fit.
 std::uint32_t build_initial_stack(GuestMemory& mem, std::uint32_t stack_top, const std::vector<std::string>& argv,

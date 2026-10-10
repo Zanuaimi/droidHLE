@@ -677,7 +677,7 @@ std::int32_t sys_prctl(Ctx& c) {
 std::int32_t sys_uname(Ctx& c) {
     utsname u;
     if (::uname(&u) != 0) return -errno;
-    std::strncpy(u.machine, "armv8l", sizeof u.machine);
+    std::strncpy(u.machine, "armv7l", sizeof u.machine);
     return write_guest(c.mem, c.a[0], u) ? 0 : -EFAULT;
 }
 

@@ -32,7 +32,7 @@ std::uint32_t build_initial_stack(GuestMemory& mem, std::uint32_t stack_top, con
     auto push_string = [&](const std::string& s) { return push_bytes(s.c_str(), s.size() + 1); };
 
     const std::uint32_t execfn_addr = push_string(execfn);
-    const std::uint32_t platform_addr = push_string("v8l");
+    const std::uint32_t platform_addr = push_string("v7l");
     std::vector<std::uint32_t> env_addrs;
     for (const auto& e : envp) env_addrs.push_back(push_string(e));
     std::vector<std::uint32_t> arg_addrs;
