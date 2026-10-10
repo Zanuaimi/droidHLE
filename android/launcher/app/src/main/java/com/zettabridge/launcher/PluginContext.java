@@ -2,7 +2,10 @@ package com.zettabridge.launcher;
 
 import android.content.Context;
 import android.content.ContextParams;
+import android.content.ComponentName;
 import android.content.ContextWrapper;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -11,6 +14,8 @@ import android.content.res.Resources;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.UserHandle;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 
@@ -160,6 +165,71 @@ final class PluginContext extends ContextWrapper {
             return inflater;
         }
         return super.getSystemService(name);
+    }
+
+    // Implicit service intents. Before Android 5 an implicit intent with no matching service
+    // made bindService return false and startService return null; since then the framework
+    // throws. Old apps bind implicitly on startup (in-app billing v1/v2 binds
+    // "com.android.vending.billing.MarketBillingService.BIND"), so restore the old answer:
+    // the service is not there.
+
+    private static boolean implicit(Intent service) {
+        return service != null && service.getComponent() == null && service.getPackage() == null;
+    }
+
+    private static void refuse(String call, Intent service) {
+        Log.w("zb-launcher", call + ": implicit service intent has no service here: " + service);
+    }
+
+    @Override
+    public boolean bindService(Intent service, ServiceConnection conn, int flags) {
+        if (implicit(service)) {
+            refuse("bindService", service);
+            return false;
+        }
+        return super.bindService(service, conn, flags);
+    }
+
+    @Override
+    public boolean bindService(Intent service, ServiceConnection conn, BindServiceFlags flags) {
+        if (implicit(service)) {
+            refuse("bindService", service);
+            return false;
+        }
+        return super.bindService(service, conn, flags);
+    }
+
+    @Override
+    public boolean bindServiceAsUser(Intent service, ServiceConnection conn, int flags, UserHandle user) {
+        if (implicit(service)) {
+            refuse("bindServiceAsUser", service);
+            return false;
+        }
+        return super.bindServiceAsUser(service, conn, flags, user);
+    }
+
+    @Override
+    public ComponentName startService(Intent service) {
+        if (implicit(service)) {
+            refuse("startService", service);
+            return null;
+        }
+        return super.startService(service);
+    }
+
+    @Override
+    public ComponentName startForegroundService(Intent service) {
+        if (implicit(service)) {
+            refuse("startForegroundService", service);
+            return null;
+        }
+        return super.startForegroundService(service);
+    }
+
+    @Override
+    public boolean stopService(Intent service) {
+        if (implicit(service)) return false;
+        return super.stopService(service);
     }
 
     // Storage: each plugin gets filesDir/plugins/<package>/data and its own external subdirectory.

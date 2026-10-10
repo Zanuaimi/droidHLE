@@ -15,11 +15,20 @@ final class PluginClassLoader extends DexClassLoader {
 
     PluginClassLoader(PluginRecord record, File codeCache, File proxyTemplate, ClassLoader bootLoader,
             ClassLoader bridgeLoader) {
-        super(record.apk().getPath(), codeCache.getPath(), record.isTranslated() ? null : record.libDir().getPath(),
+        super(dexPath(record), codeCache.getPath(), record.isTranslated() ? null : record.libDir().getPath(),
                 bootLoader);
         this.record = record;
         this.proxyTemplate = proxyTemplate;
         this.bridgeLoader = bridgeLoader;
+    }
+
+    // Android puts the Apache HTTP client on the class path of apps targeting below API 28;
+    // old games (and their Flurry/ad SDKs) still call it.
+    private static final File APACHE_HTTP = new File("/system/framework/org.apache.http.legacy.jar");
+
+    private static String dexPath(PluginRecord record) {
+        String apk = record.apk().getPath();
+        return record.targetSdk < 28 && APACHE_HTTP.isFile() ? apk + File.pathSeparator + APACHE_HTTP : apk;
     }
 
     static boolean delegateToBridge(String name) {
@@ -56,11 +65,27 @@ final class PluginClassLoader extends DexClassLoader {
     @Override
     public String findLibrary(String name) {
         try {
-            File library = PluginFiles.resolveLibrary(record.libDir(), record.proxyDir(), proxyTemplate,
-                    record.isTranslated(), name);
+            File library = resolve(name);
+            // getPackageName() is the launcher's, so an app that names its library after its own
+            // package (Marmalade loads lib<last package segment>.so) asks for the launcher's
+            // segment instead. Give it the library its own package name points at.
+            String own = lastSegment(record.packageName);
+            if (library == null && name.equals(lastSegment(PluginClassLoader.class.getPackage().getName()))
+                    && !name.equals(own)) {
+                library = resolve(own);
+            }
             return library != null ? library.getPath() : null;
         } catch (IOException e) {
             return null;  // ART reports the normal UnsatisfiedLinkError; Diagnostics adds the bridge detail.
         }
+    }
+
+    private File resolve(String name) throws IOException {
+        return PluginFiles.resolveLibrary(record.libDir(), record.proxyDir(), proxyTemplate, record.isTranslated(),
+                name);
+    }
+
+    private static String lastSegment(String packageName) {
+        return packageName.substring(packageName.lastIndexOf('.') + 1);
     }
 }
