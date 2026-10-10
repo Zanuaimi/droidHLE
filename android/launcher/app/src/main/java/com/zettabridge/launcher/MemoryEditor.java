@@ -2,10 +2,12 @@ package com.zettabridge.launcher;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,6 +40,8 @@ final class MemoryEditor {
     private static final int LIMIT = 2_000_000;
     private static final int SHOWN = 200;
     private static final long FREEZE_MS = 100;
+    /** The system's own dialog look, not the game's (often Holo or bare) theme. */
+    private static final int THEME = android.R.style.Theme_DeviceDefault_Dialog_Alert;
     private static final String[] TYPES = {"4-byte integer", "Float"};
 
     private enum Filter { EXACT, CHANGED, UNCHANGED, INCREASED, DECREASED }
@@ -55,6 +59,7 @@ final class MemoryEditor {
     }
 
     private final Activity activity;
+    private final Context ui;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final List<Frozen> frozen = new ArrayList<>();  // main thread only
@@ -73,6 +78,7 @@ final class MemoryEditor {
 
     private MemoryEditor(Activity activity) {
         this.activity = activity;
+        this.ui = new ContextThemeWrapper(activity, THEME);
     }
 
     static void attach(Activity activity) {
@@ -134,25 +140,39 @@ final class MemoryEditor {
     }
 
     private void showPanel() {
-        LinearLayout body = new LinearLayout(activity);
+        // Landscape games leave little height: controls and results side by side there.
+        boolean wide = activity.getResources().getConfiguration().orientation
+                == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+        LinearLayout outer = new LinearLayout(ui);
+        outer.setOrientation(wide ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        outer.setPadding(dp(16), dp(8), dp(16), 0);
+        LinearLayout body = new LinearLayout(ui);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(16), dp(8), dp(16), 0);
+        LinearLayout results = new LinearLayout(ui);
+        results.setOrientation(LinearLayout.VERTICAL);
+        if (wide) results.setPaddingRelative(dp(16), 0, 0, 0);
+        outer.addView(body, wide ? weight() : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        outer.addView(results, wide ? weight() : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        Spinner types = new Spinner(activity);
-        types.setAdapter(new ArrayAdapter<>(activity, android.R.layout.simple_spinner_dropdown_item, TYPES));
+        Spinner types = new Spinner(ui);
+        ArrayAdapter<String> typeNames = new ArrayAdapter<>(ui, android.R.layout.simple_spinner_item, TYPES);
+        typeNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        types.setAdapter(typeNames);
         types.setSelection(type);
         body.addView(types);
 
-        EditText value = new EditText(activity);
+        EditText value = new EditText(ui);
         value.setHint("Value");
         value.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         body.addView(value);
 
-        TextView status = new TextView(activity);
+        TextView status = new TextView(ui);
         status.setPadding(0, dp(8), 0, dp(8));
-        ArrayAdapter<String> rows = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1);
-        ListView list = new ListView(activity);
+        ArrayAdapter<String> rows = new ArrayAdapter<>(ui, android.R.layout.simple_list_item_1);
+        ListView list = new ListView(ui);
 
         Runnable refresh = () -> refresh(status, rows);
         LinearLayout scans = row();
@@ -186,8 +206,8 @@ final class MemoryEditor {
         changes.addView(button("Down", v -> narrow(Filter.DECREASED, 0, 0, status, refresh)), weight());
         body.addView(changes);
 
-        body.addView(status);
-        body.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(240)));
+        results.addView(status);
+        results.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(wide ? 180 : 240)));
         list.setAdapter(rows);
         list.setOnItemClickListener((parent, v, position, id) -> {
             if (position < frozen.size()) {
@@ -198,9 +218,9 @@ final class MemoryEditor {
         });
         refresh.run();
 
-        new AlertDialog.Builder(activity)
+        new AlertDialog.Builder(ui)
                 .setTitle("Memory editor")
-                .setView(body)
+                .setView(outer)
                 .setPositiveButton("Close", null)
                 .setNeutralButton("Reset", (d, w) -> {
                     hits = null;
@@ -277,16 +297,16 @@ final class MemoryEditor {
 
     private void editValue(int address, int valueType, Runnable refresh) {
         double[] current = ZBridge.memRead(valueType, new int[] {address});
-        EditText input = new EditText(activity);
+        EditText input = new EditText(ui);
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         input.setText(format(current[0], valueType));
         int pad = dp(20);
-        LinearLayout box = new LinearLayout(activity);
+        LinearLayout box = new LinearLayout(ui);
         box.setPadding(pad, 0, pad, 0);
         box.addView(input, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         int index = frozenIndex(address);
-        new AlertDialog.Builder(activity)
+        new AlertDialog.Builder(ui)
                 .setTitle(String.format(Locale.US, "%08X", address))
                 .setView(box)
                 .setPositiveButton("Set", (d, w) -> {
@@ -336,7 +356,7 @@ final class MemoryEditor {
     }
 
     private LinearLayout row() {
-        LinearLayout row = new LinearLayout(activity);
+        LinearLayout row = new LinearLayout(ui);
         row.setOrientation(LinearLayout.HORIZONTAL);
         return row;
     }
@@ -346,9 +366,11 @@ final class MemoryEditor {
     }
 
     private Button button(String text, View.OnClickListener click) {
-        Button b = new Button(activity);
+        Button b = new Button(ui);
         b.setText(text);
         b.setAllCaps(false);
+        b.setMaxLines(1);
+        b.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
         b.setOnClickListener(click);
         return b;
     }
