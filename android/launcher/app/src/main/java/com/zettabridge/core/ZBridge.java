@@ -129,4 +129,20 @@ public final class ZBridge {
      * runtime of this plugin is constructed, since it reads the variable only once.
      */
     public static native void setGlDiagnostics(boolean enabled);
+
+    /** Memory editor value types, matching zb::GuestMemory::ValueType. */
+    public static final int MEM_INT32 = 0;
+    public static final int MEM_FLOAT = 1;
+
+    /**
+     * Guest addresses (4-byte aligned, in guest-writable memory) holding a value within tolerance
+     * of target, ascending, at most limit of them. Empty when no translated guest runs here.
+     */
+    public static native int[] memScan(int type, double target, double tolerance, int limit);
+
+    /** The current value at each guest address, NaN where it cannot be read. */
+    public static native double[] memRead(int type, int[] addresses);
+
+    /** Stores value at a writable guest address; false if it is not writable. */
+    public static native boolean memWrite(int type, int address, double value);
 }

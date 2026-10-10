@@ -1,6 +1,7 @@
 // JNI entry points of libzbridge.so for com.zettabridge.core.ZBridge.
 #include <jni.h>
 
+#include <cmath>
 #include <cstdlib>
 #include <optional>
 #include <string>
@@ -8,6 +9,7 @@
 
 #include "guest_jni_runtime.h"
 #include "zb/elf_fixups.h"
+#include "zb/guest_memory.h"
 #include "zb/log.h"
 #include "zb/runtime_report.h"
 #include "zb/zbridge.h"
@@ -228,6 +230,44 @@ JNIEXPORT void JNICALL Java_com_zettabridge_core_ZBridge_setPreciseFaults(JNIEnv
 // Must be called before the guest JNI runtime is constructed: it reads ZB_GL_DIAGNOSTICS once.
 JNIEXPORT void JNICALL Java_com_zettabridge_core_ZBridge_setGlDiagnostics(JNIEnv*, jclass, jboolean enabled) {
     ::setenv("ZB_GL_DIAGNOSTICS", enabled ? "1" : "0", 1);
+}
+
+// static native int[] memScan(int type, double target, double tolerance, int limit)
+JNIEXPORT jintArray JNICALL Java_com_zettabridge_core_ZBridge_memScan(JNIEnv* env, jclass, jint type, jdouble target,
+                                                                     jdouble tolerance, jint limit) {
+    std::vector<std::uint32_t> hits;
+    if (zb::GuestMemory* mem = zb::GuestMemory::current()) {
+        hits = mem->scan(static_cast<zb::GuestMemory::ValueType>(type), target, tolerance,
+                         static_cast<std::size_t>(limit));
+    }
+    jintArray out = env->NewIntArray(static_cast<jsize>(hits.size()));
+    if (out != nullptr) {
+        env->SetIntArrayRegion(out, 0, static_cast<jsize>(hits.size()), reinterpret_cast<const jint*>(hits.data()));
+    }
+    return out;
+}
+
+// static native double[] memRead(int type, int[] addresses)
+JNIEXPORT jdoubleArray JNICALL Java_com_zettabridge_core_ZBridge_memRead(JNIEnv* env, jclass, jint type,
+                                                                        jintArray addresses) {
+    const jsize count = env->GetArrayLength(addresses);
+    std::vector<std::uint32_t> addrs(static_cast<std::size_t>(count));
+    env->GetIntArrayRegion(addresses, 0, count, reinterpret_cast<jint*>(addrs.data()));
+    std::vector<double> values(addrs.size(), NAN);
+    if (zb::GuestMemory* mem = zb::GuestMemory::current()) {
+        values = mem->read_values(static_cast<zb::GuestMemory::ValueType>(type), addrs);
+    }
+    jdoubleArray out = env->NewDoubleArray(count);
+    if (out != nullptr) env->SetDoubleArrayRegion(out, 0, count, values.data());
+    return out;
+}
+
+// static native boolean memWrite(int type, int address, double value)
+JNIEXPORT jboolean JNICALL Java_com_zettabridge_core_ZBridge_memWrite(JNIEnv*, jclass, jint type, jint address,
+                                                                     jdouble value) {
+    zb::GuestMemory* mem = zb::GuestMemory::current();
+    return mem != nullptr &&
+           mem->write_value(static_cast<zb::GuestMemory::ValueType>(type), static_cast<std::uint32_t>(address), value);
 }
 
 }  // extern "C"

@@ -239,6 +239,7 @@ final class GuestRuntime {
         GuestWindowStyle.apply(activity, p.record != null && p.record.isTranslated());
         if (p.record != null && p.record.highRefresh) GuestWindowStyle.preferHighestRefreshRate(activity);
         if (p.record != null && p.record.hideAds) AdHider.attach(activity);
+        if (p.record != null && p.record.memoryEditor && p.record.isTranslated()) MemoryEditor.attach(activity);
 
         Intent original = activity.getIntent().getParcelableExtra(EXTRA_INTENT);
         if (original != null) {

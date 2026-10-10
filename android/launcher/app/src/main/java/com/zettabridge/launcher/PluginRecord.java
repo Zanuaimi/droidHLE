@@ -41,6 +41,8 @@ final class PluginRecord {
     boolean fullResolution = false;
     /** Graphics: ask for the display's highest refresh rate. Fixed-timestep games run faster. */
     boolean highRefresh = false;
+    /** Tools: floating memory editor button in game (translated games only). */
+    boolean memoryEditor = false;
     /** Every ABI directory found under lib/ in the APK. */
     final Set<String> abis = new TreeSet<>();
 
@@ -120,6 +122,7 @@ final class PluginRecord {
         p.setProperty("anisotropic", Boolean.toString(anisotropic));
         p.setProperty("fullResolution", Boolean.toString(fullResolution));
         p.setProperty("highRefresh", Boolean.toString(highRefresh));
+        p.setProperty("memoryEditor", Boolean.toString(memoryEditor));
         try (OutputStream out = new FileOutputStream(new File(dir, "meta.properties"))) {
             p.store(out, "ZettaBridge plugin");
         }
@@ -156,6 +159,7 @@ final class PluginRecord {
         r.anisotropic = !"false".equals(p.getProperty("anisotropic"));
         r.fullResolution = "true".equals(p.getProperty("fullResolution"));
         r.highRefresh = "true".equals(p.getProperty("highRefresh"));
+        r.memoryEditor = "true".equals(p.getProperty("memoryEditor"));
         // Phase 0 arm64 imports are already complete. Old 32-bit records must be reimported so
         // every library passes through the non-atomic ELF fixer before metadata says ready.
         if (r.selectedAbi == null && r.abis.contains(ABI_ARM64)) r.selectedAbi = ABI_ARM64;

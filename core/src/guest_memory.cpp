@@ -1,8 +1,12 @@
 #include "zb/guest_memory.h"
 
 #include <sys/mman.h>
+#include <sys/uio.h>
+#include <unistd.h>
 
+#include <atomic>
 #include <cerrno>
+#include <cmath>
 #include <cstring>
 
 #include "zb/log.h"
@@ -26,6 +30,27 @@ std::uint8_t flags_from_prot(int prot) {
     return f;
 }
 
+std::atomic<GuestMemory*> current_memory{nullptr};
+
+double decode(GuestMemory::ValueType type, const std::uint8_t* p) {
+    if (type == GuestMemory::ValueType::Float) {
+        float f;
+        std::memcpy(&f, p, sizeof f);
+        return f;
+    }
+    std::int32_t i;
+    std::memcpy(&i, p, sizeof i);
+    return i;
+}
+
+bool copy(void* local_ptr, void* remote_ptr, std::size_t len, bool write) {
+    iovec local{local_ptr, len};
+    iovec remote{remote_ptr, len};
+    const ssize_t n = write ? process_vm_writev(getpid(), &local, 1, &remote, 1, 0)
+                            : process_vm_readv(getpid(), &local, 1, &remote, 1, 0);
+    return n == static_cast<ssize_t>(len);
+}
+
 }  // namespace
 
 int host_prot(int guest_prot) {
@@ -42,10 +67,17 @@ GuestMemory::GuestMemory() : pages_(static_cast<std::size_t>(kGuestSpaceSize >> 
         return;
     }
     base_ = static_cast<std::uint8_t*>(p);
+    current_memory.store(this);
 }
 
 GuestMemory::~GuestMemory() {
+    GuestMemory* self = this;
+    current_memory.compare_exchange_strong(self, nullptr);
     if (base_) munmap(base_, kGuestSpaceSize + kGuardSize);
+}
+
+GuestMemory* GuestMemory::current() {
+    return current_memory.load();
 }
 
 void GuestMemory::set_flags(std::uint32_t addr, std::uint64_t len, std::uint8_t flags) {
@@ -125,6 +157,66 @@ bool GuestMemory::accessible(std::uint32_t addr, std::uint64_t len, std::uint8_t
 
 std::uint8_t* GuestMemory::host_ptr(std::uint32_t addr, std::uint64_t len, std::uint8_t need) const {
     return accessible(addr, len, need) ? base_ + addr : nullptr;
+}
+
+std::vector<std::uint32_t> GuestMemory::scan(ValueType type, double target, double tolerance,
+                                              std::size_t limit) const {
+    std::vector<std::uint32_t> hits;
+    if (!ok()) return hits;
+    constexpr std::uint8_t kWanted = kPageMapped | kPageRead | kPageWrite;
+    constexpr std::uint64_t kChunk = 1 << 20;
+    std::vector<std::uint8_t> buf(kChunk);
+    std::uint64_t addr = kLowestAllocPage << 12;
+    while (addr < kGuestSpaceSize && hits.size() < limit) {
+        if ((pages_[addr >> 12] & kWanted) != kWanted) {
+            addr += kPageSize;
+            continue;
+        }
+        std::uint64_t end = addr + kPageSize;
+        while (end < kGuestSpaceSize && end - addr < kChunk && (pages_[end >> 12] & kWanted) == kWanted) end += kPageSize;
+        const std::size_t len = static_cast<std::size_t>(end - addr);
+        if (copy(buf.data(), base_ + addr, len, false)) {
+            for (std::size_t i = 0; i < len && hits.size() < limit; i += 4) {
+                if (std::fabs(decode(type, &buf[i]) - target) <= tolerance) {
+                    hits.push_back(static_cast<std::uint32_t>(addr + i));
+                }
+            }
+        }
+        addr = end;
+    }
+    return hits;
+}
+
+std::vector<double> GuestMemory::read_values(ValueType type, const std::vector<std::uint32_t>& addrs) const {
+    std::vector<double> out(addrs.size(), NAN);
+    if (!ok()) return out;
+    std::uint8_t page[kPageSize];
+    std::uint64_t cached = ~0ULL;
+    bool readable = false;
+    for (std::size_t i = 0; i < addrs.size(); ++i) {
+        const std::uint32_t offset = addrs[i] & kPageMask;
+        if (offset > kPageSize - 4) continue;
+        const std::uint32_t start = page_round_down(addrs[i]);
+        if (start != cached) {  // addresses come sorted, so each page is copied once
+            cached = start;
+            readable = (pages_[start >> 12] & kPageMapped) != 0 && copy(page, base_ + start, kPageSize, false);
+        }
+        if (readable) out[i] = decode(type, page + offset);
+    }
+    return out;
+}
+
+bool GuestMemory::write_value(ValueType type, std::uint32_t addr, double value) const {
+    if (!ok() || !accessible(addr, 4, kPageWrite)) return false;
+    std::uint8_t bytes[4];
+    if (type == ValueType::Float) {
+        const float f = static_cast<float>(value);
+        std::memcpy(bytes, &f, 4);
+    } else {
+        const auto i = static_cast<std::int32_t>(static_cast<std::int64_t>(std::llround(value)));
+        std::memcpy(bytes, &i, 4);
+    }
+    return copy(bytes, base_ + addr, 4, true);
 }
 
 }  // namespace zb

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -56,6 +57,19 @@ public:
     // Host pointer to [addr, addr + len) if accessible, else nullptr.
     std::uint8_t* host_ptr(std::uint32_t addr, std::uint64_t len, std::uint8_t need) const;
     std::uint8_t page_flags(std::uint32_t addr) const { return pages_[addr >> 12]; }
+
+    // Memory editor: 4-byte-aligned values in guest-writable memory. Copies go through
+    // process_vm_readv/writev, so a page a guest thread unmaps mid-scan fails the copy instead of
+    // faulting the calling (UI) thread.
+    enum class ValueType { Int32, Float };
+    // Addresses whose value is within tolerance of target, ascending, at most limit of them.
+    std::vector<std::uint32_t> scan(ValueType type, double target, double tolerance, std::size_t limit) const;
+    // The value at each address, or NaN where it cannot be read.
+    std::vector<double> read_values(ValueType type, const std::vector<std::uint32_t>& addrs) const;
+    bool write_value(ValueType type, std::uint32_t addr, double value) const;
+
+    // The live instance of this process (there is one per guest process), or nullptr.
+    static GuestMemory* current();
 
 private:
     void set_flags(std::uint32_t addr, std::uint64_t len, std::uint8_t flags);

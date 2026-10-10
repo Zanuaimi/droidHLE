@@ -299,6 +299,9 @@ public class LibraryActivity extends Activity {
                 p -> p.highRefresh, (p, on) -> p.highRefresh = on);
         section(body, "Compatibility");
         toggle(body, r, "Hide ads", "Blank out bundled ad SDK views", p -> p.hideAds, (p, on) -> p.hideAds = on);
+        section(body, "Tools");
+        toggle(body, r, "Memory editor", "Floating MEM button: find and change values like coins or lives",
+                p -> p.memoryEditor, (p, on) -> p.memoryEditor = on);
         section(body, "Debugging");
         toggle(body, r, "Precise faults", "Exact crash locations; about 2x slower", p -> p.preciseFaults,
                 (p, on) -> p.preciseFaults = on);
