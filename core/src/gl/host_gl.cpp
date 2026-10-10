@@ -3,6 +3,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <cstdlib>
@@ -78,7 +79,45 @@ bool gl_trace_enabled() {
     return enabled;
 }
 
+// ZB_GFX_ANISO=<level> (per-game setting).
+float forced_anisotropy() {
+    static const float level = [] {
+        const char* value = std::getenv("ZB_GFX_ANISO");
+        return value != nullptr ? static_cast<float>(std::atof(value)) : 0.0f;
+    }();
+    return level;
+}
+
+bool is_mipmap_filter(std::uint32_t filter) {
+    return filter >= 0x2700 && filter <= 0x2703;  // GL_{NEAREST,LINEAR}_MIPMAP_{NEAREST,LINEAR}
+}
+
 }  // namespace
+
+// After the guest sets a mipmapped GL_TEXTURE_MIN_FILTER, raise the texture's anisotropy to the
+// per-game level, capped at what the driver supports (nothing without the extension).
+void HostGl::apply_anisotropy(std::uint32_t index, const std::uint32_t* regs) {
+    const float wanted = forced_anisotropy();
+    if (wanted <= 1.0f || regs[1] != 0x2801 /* GL_TEXTURE_MIN_FILTER */) return;
+    std::uint32_t filter = regs[2];
+    if (index == ZB_GL_HC_glTexParameterf) {
+        float value;
+        std::memcpy(&value, &regs[2], sizeof value);  // softfp: the float travels in r2
+        filter = static_cast<std::uint32_t>(value);
+    }
+    if (!is_mipmap_filter(filter)) return;
+    if (max_anisotropy_ < 0.0f) {
+        max_anisotropy_ = 0.0f;
+        backend_.glGetFloatv(0x84FF /* GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT */, &max_anisotropy_);
+        while (backend_.glGetError() != 0) {
+        }
+        log("anisotropic filtering: %gx (driver max %g)", std::min(wanted, max_anisotropy_), max_anisotropy_);
+    }
+    if (max_anisotropy_ > 1.0f) {
+        backend_.glTexParameterf(regs[0], 0x84FE /* GL_TEXTURE_MAX_ANISOTROPY_EXT */,
+                                 std::min(wanted, max_anisotropy_));
+    }
+}
 
 bool HostGl::handle_host_call(std::uint32_t index, GuestThread& thread) {
     if (!is_gl_host_call(index)) return false;
@@ -98,9 +137,13 @@ bool HostGl::handle_host_call(std::uint32_t index, GuestThread& thread) {
         egl_context_checked_ = true;
         if (egl_context_probe_) runtime_report().note_gl_egl_context(egl_context() != 0);
     }
+    const std::uint32_t args[3] = {thread.regs()[0], thread.regs()[1], thread.regs()[2]};
     Call call(*this, thread, index);
     if (gl_diagnostics_enabled()) gl_diagnose_before(*this, call);
     if (dispatch(call)) {
+        if (call.valid() && (index == ZB_GL_HC_glTexParameteri || index == ZB_GL_HC_glTexParameterf)) {
+            apply_anisotropy(index, args);
+        }
         // Visibility diagnostics query the driver, so they run only once the Android runtime
         // enables them; mock-backend tests keep exact call logs.
         if (call.valid() && gl_diagnostics_enabled()) gl_diagnose(*this, call);

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <map>
 #include <mutex>
@@ -187,6 +188,33 @@ bool unsupported(HostEgl::Call& call, const char* what) {
     return true;
 }
 
+// ZB_GFX_MSAA=<samples> (per-game setting): window configs are chosen multisampled unless the
+// guest asked for samples itself. A request the driver cannot meet is retried as the guest made it.
+int forced_msaa_samples() {
+    static const int samples = [] {
+        const char* value = std::getenv("ZB_GFX_MSAA");
+        return value != nullptr ? std::atoi(value) : 0;
+    }();
+    return samples;
+}
+
+bool with_msaa(const std::vector<EGLint>& attribs, std::vector<EGLint>& out) {
+    const int samples = forced_msaa_samples();
+    if (samples <= 1) return false;
+    out.clear();
+    for (std::size_t i = 0; i + 1 < attribs.size(); i += 2) {
+        const EGLint name = attribs[i];
+        const EGLint value = attribs[i + 1];
+        if ((name == 0x3031 /* EGL_SAMPLES */ || name == 0x3032 /* EGL_SAMPLE_BUFFERS */) && value > 0) return false;
+        if (name == 0x3033 /* EGL_SURFACE_TYPE */ && (value & 0x4 /* EGL_WINDOW_BIT */) == 0) return false;
+        if (name == 0x3031 || name == 0x3032) continue;
+        out.push_back(name);
+        out.push_back(value);
+    }
+    out.insert(out.end(), {0x3032, 1, 0x3031, samples, 0x3038 /* EGL_NONE */});
+    return true;
+}
+
 }  // namespace
 
 bool zbegl_manual_eglChooseConfig(HostEgl& host, HostEgl::Call& call) {
@@ -195,7 +223,23 @@ bool zbegl_manual_eglChooseConfig(HostEgl& host, HostEgl::Call& call) {
     std::vector<EGLint> attribs;
     if (!read_attribs(host, call, 1, attribs)) return true;
     ConfigOutcome outcome;
-    const bool served = serve_configs(host, call, dpy, &attribs, 2, &outcome);
+    std::vector<EGLint> multisampled;
+    bool served = false;
+    if (with_msaa(attribs, multisampled)) {
+        served = serve_configs(host, call, dpy, &multisampled, 2, &outcome);
+        const bool got = call.valid() && outcome.ok != 0 && outcome.count > 0;
+        static std::atomic<bool> logged{false};
+        if (!logged.exchange(true)) {
+            log(got ? "MSAA: %dx multisampled window configs" : "MSAA: no %dx config, using the game's request",
+                forced_msaa_samples());
+        }
+        if (got) {
+            attribs.swap(multisampled);  // the report below shows what was really asked
+        } else {
+            served = false;
+        }
+    }
+    if (!served) served = serve_configs(host, call, dpy, &attribs, 2, &outcome);
     // Flutter chooses one configuration per context (onscreen, then offscreen) and does not check
     // the second for failure, so record what each request asked for and how many it got.
     static std::atomic<unsigned> chosen{0};

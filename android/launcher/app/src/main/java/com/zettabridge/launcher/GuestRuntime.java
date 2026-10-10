@@ -237,6 +237,7 @@ final class GuestRuntime {
         activity.setTheme(theme != 0 ? theme : GuestWindowStyle.defaultTheme(p.appInfo.targetSdkVersion));
 
         GuestWindowStyle.apply(activity, p.record != null && p.record.isTranslated());
+        if (p.record != null && p.record.highRefresh) GuestWindowStyle.preferHighestRefreshRate(activity);
         if (p.record != null && p.record.hideAds) AdHider.attach(activity);
 
         Intent original = activity.getIntent().getParcelableExtra(EXTRA_INTENT);

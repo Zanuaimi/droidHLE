@@ -1,6 +1,8 @@
 #include "zb/host_native_window.h"
 
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #include "zb/host_jni.h"
 #include "zb/window_hostcalls.h"
@@ -115,8 +117,15 @@ bool HostNativeWindow::handle_host_call(std::uint32_t index, GuestThread& thread
         const void* window = require_window(regs[0]);
         std::int32_t result = -1;
         if (window != nullptr) {
-            result = backend_.set_buffers_geometry(const_cast<void*>(window), static_cast<std::int32_t>(regs[1]),
-                                                   static_cast<std::int32_t>(regs[2]),
+            // ZB_GFX_FULL_RES=1 (per-game setting): width/height 0 keep the window's own size,
+            // so a guest that renders small is not upscaled. The format is still the guest's.
+            static const bool full_res = [] {
+                const char* value = std::getenv("ZB_GFX_FULL_RES");
+                return value != nullptr && std::strcmp(value, "1") == 0;
+            }();
+            const std::int32_t width = full_res ? 0 : static_cast<std::int32_t>(regs[1]);
+            const std::int32_t height = full_res ? 0 : static_cast<std::int32_t>(regs[2]);
+            result = backend_.set_buffers_geometry(const_cast<void*>(window), width, height,
                                                    static_cast<std::int32_t>(regs[3]));
         }
         regs[0] = static_cast<std::uint32_t>(result);

@@ -88,9 +88,18 @@ final class LoadedPlugin {
             ZBridge.setPreciseFaults(record.preciseFaults);
             // Same rule: the GL instrumentation is read once, when the guest JNI runtime is built.
             ZBridge.setGlDiagnostics(record.diagnostics);
+            // Graphics settings, read once by the native GL/EGL/window bridges.
+            try {
+                android.system.Os.setenv("ZB_GFX_MSAA", record.msaa ? "4" : "0", true);
+                android.system.Os.setenv("ZB_GFX_ANISO", record.anisotropic ? "16" : "0", true);
+                android.system.Os.setenv("ZB_GFX_FULL_RES", record.fullResolution ? "1" : "0", true);
+            } catch (android.system.ErrnoException e) {
+                android.util.Log.w("zb-launcher", "cannot apply the graphics settings: " + e);
+            }
             // Must precede every plugin class initialization, provider and Application callback.
             ZBridge.activatePlugin(record.dir.getCanonicalPath(), record.targetSdk, cl);
         }
+        if (record.msaa) JavaEglMsaa.install(4);
         if (info.activities != null) {
             for (ActivityInfo a : info.activities) {
                 a.applicationInfo = ai;

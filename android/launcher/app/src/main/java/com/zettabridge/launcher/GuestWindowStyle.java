@@ -52,6 +52,25 @@ final class GuestWindowStyle {
         });
     }
 
+    /** Picks the display mode with the highest refresh rate at the current resolution. */
+    static void preferHighestRefreshRate(Activity activity) {
+        android.view.Display display = activity.getWindowManager().getDefaultDisplay();
+        android.view.Display.Mode current = display.getMode();
+        android.view.Display.Mode best = current;
+        for (android.view.Display.Mode mode : display.getSupportedModes()) {
+            if (mode.getPhysicalWidth() == current.getPhysicalWidth()
+                    && mode.getPhysicalHeight() == current.getPhysicalHeight()
+                    && mode.getRefreshRate() > best.getRefreshRate()) {
+                best = mode;
+            }
+        }
+        WindowManager.LayoutParams attrs = activity.getWindow().getAttributes();
+        attrs.preferredDisplayModeId = best.getModeId();
+        attrs.preferredRefreshRate = best.getRefreshRate();
+        activity.getWindow().setAttributes(attrs);
+        Log.i(TAG, "preferred refresh rate " + best.getRefreshRate() + " Hz");
+    }
+
     static void apply(Activity activity, boolean translated) {
         Window window = activity.getWindow();
         if (window == null) return;

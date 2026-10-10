@@ -33,6 +33,14 @@ final class PluginRecord {
     boolean preciseFaults = false;
     /** Debugging: GL instrumentation (framebuffer readbacks, per-draw pixel diffs). Very slow. */
     boolean diagnostics = false;
+    /** Graphics: 4x MSAA on the window surface (when the game does not ask for samples). */
+    boolean msaa = true;
+    /** Graphics: 16x anisotropic filtering on mipmapped textures. */
+    boolean anisotropic = true;
+    /** Graphics: render at the window's size even when the game asks for smaller buffers. */
+    boolean fullResolution = false;
+    /** Graphics: ask for the display's highest refresh rate. Fixed-timestep games run faster. */
+    boolean highRefresh = false;
     /** Every ABI directory found under lib/ in the APK. */
     final Set<String> abis = new TreeSet<>();
 
@@ -108,6 +116,10 @@ final class PluginRecord {
         p.setProperty("hideAds", Boolean.toString(hideAds));
         p.setProperty("preciseFaults", Boolean.toString(preciseFaults));
         p.setProperty("diagnostics", Boolean.toString(diagnostics));
+        p.setProperty("msaa", Boolean.toString(msaa));
+        p.setProperty("anisotropic", Boolean.toString(anisotropic));
+        p.setProperty("fullResolution", Boolean.toString(fullResolution));
+        p.setProperty("highRefresh", Boolean.toString(highRefresh));
         try (OutputStream out = new FileOutputStream(new File(dir, "meta.properties"))) {
             p.store(out, "ZettaBridge plugin");
         }
@@ -140,6 +152,10 @@ final class PluginRecord {
         r.hideAds = !"false".equals(p.getProperty("hideAds"));
         r.preciseFaults = "true".equals(p.getProperty("preciseFaults"));
         r.diagnostics = "true".equals(p.getProperty("diagnostics"));
+        r.msaa = !"false".equals(p.getProperty("msaa"));
+        r.anisotropic = !"false".equals(p.getProperty("anisotropic"));
+        r.fullResolution = "true".equals(p.getProperty("fullResolution"));
+        r.highRefresh = "true".equals(p.getProperty("highRefresh"));
         // Phase 0 arm64 imports are already complete. Old 32-bit records must be reimported so
         // every library passes through the non-atomic ELF fixer before metadata says ready.
         if (r.selectedAbi == null && r.abis.contains(ABI_ARM64)) r.selectedAbi = ABI_ARM64;

@@ -137,6 +137,7 @@ public:
 
 private:
     bool dispatch(Call& call);
+    void apply_anisotropy(std::uint32_t index, const std::uint32_t* regs);
 
     LibraryRuntime& runtime_;
     GlBackend& backend_;
@@ -147,6 +148,8 @@ private:
     // for. Compared with one relaxed atomic load per call; a mismatch means a new eglMakeCurrent
     // happened and the next gl* call's host tid is worth recording.
     std::uint64_t gl_thread_sampled_generation_ = UINT64_MAX;
+    // GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, queried on first use; -1 until then, 0 if unsupported.
+    float max_anisotropy_ = -1.0f;
 };
 
 std::uint64_t gl_pname_count(GlBackend& backend, GLenum pname);
