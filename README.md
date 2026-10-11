@@ -5,8 +5,6 @@
 Afterlife Manager is a personal fork of [ZettaBridge](https://github.com/ZailoxTT/ZettaBridge) by
 ZailoxTT, an ARM32 -> ARM64 translator that runs a 32-bit app inside a 64-bit launcher process.
 The app's Java code runs on the phone's normal ART; only its native code is translated (Dynarmic).
-Phones such as the Snapdragon 8 Elite have no AArch32 at all, so without this those games
-cannot start.
 
 Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
 
@@ -27,7 +25,7 @@ Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
   classpath for old targetSdk.
 - The guest CPU reports as ARMv7, which stops Marmalade's "armv4t" warning dialog.
 
-**Per-game settings** (gear icon on a game card)
+**Per-game settings**
 - Graphics: 4x MSAA (native and Java EGL), 16x anisotropic filtering, full resolution,
   highest refresh rate.
 - Compatibility: hide bundled ad SDK views.
@@ -36,7 +34,6 @@ Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
 - Debugging: precise faults, GL diagnostics.
 
 **Launcher**
-- Renamed to Afterlife Manager (`etonedemid.afterlife.manager`), custom icon.
 - Grid library with day/night theme, import button, home-screen shortcuts.
 
 ## Build
@@ -53,13 +50,9 @@ export NDK=$HOME/Android/Sdk/ndk/29.0.14206865 NDK_HOST=linux-x86_64 ANDROID_HOM
 tools/make_launcher_bundle.sh; cd android/launcher; ./gradlew assembleDebug; adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Then open Afterlife Manager, tap **+ Import APK** and pick a game's APK. No game files are in
-this repository; bring your own.
-
 Translator internals, design docs and the upstream roadmap are in
 [README.upstream.md](README.upstream.md) and [`docs/`](docs/).
 
 ## License
 
-Same as upstream: [PolyForm Noncommercial 1.0.0 + PolyForm Perimeter 1.0.1](LICENSE), cumulatively.
-Noncommercial use only, no competing product. ZettaBridge is (c) ZailoxTT.
+[PolyForm Noncommercial 1.0.0 + PolyForm Perimeter 1.0.1](LICENSE)
