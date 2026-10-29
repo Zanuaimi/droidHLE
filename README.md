@@ -1,10 +1,15 @@
-# Afterlife Manager
+# droidHLE
 
 **Play old 32-bit Android games on 64-bit-only phones.**
 
-Afterlife Manager is a personal fork of [ZettaBridge](https://github.com/ZailoxTT/ZettaBridge) by
-ZailoxTT, an ARM32 -> ARM64 translator that runs a 32-bit app inside a 64-bit launcher process.
-The app's Java code runs on the phone's normal ART; only its native code is translated (Dynarmic).
+droidHLE is a fork of [Afterlife Manager](https://github.com/etonedemid/afterlife-manager), which
+is itself a fork of [ZettaBridge](https://github.com/ZailoxTT/ZettaBridge) by ZailoxTT. It runs a
+32-bit app inside a 64-bit launcher process: Java code runs on the phone's normal ART, while its
+ARM32 native code is translated to ARM64 with Dynarmic.
+
+Thanks to both upstream projects and their contributors for the code and work this project builds
+on. See [README.upstream.md](README.upstream.md) for the ZettaBridge project background and
+[LICENSE](LICENSE) for the applicable license terms.
 
 Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
 

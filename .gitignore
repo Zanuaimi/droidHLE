@@ -16,6 +16,7 @@ sysroot
 # local scratch
 .cache/
 .worktrees/
+graphify-out/
 
 # local session helpers and screenshots (never commit)
 cc
