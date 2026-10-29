@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_core_src_gen_jni_hostcalls_inc", "label": "jni_hostcalls.inc", "file_type": "code", "source_file": "core/src/gen/jni_hostcalls.inc", "source_location": "L1"}], "edges": [], "input_tokens": 0, "output_tokens": 0, "raw_calls": []}
