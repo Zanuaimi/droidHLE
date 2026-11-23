@@ -22,6 +22,9 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Apply dynarmic patches
+        run: git -C third_party/dynarmic apply ../patches/dynarmic-0001-thumb32-armv8.patch ../patches/dynarmic-0002-asimd-narrowing.patch
+
       - name: Compute next release tag
         id: version
         run: |
