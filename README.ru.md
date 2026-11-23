@@ -1,7 +1,7 @@
 # droidHLE
 
 **Запуск 32-битных Android-приложений на телефонах, где 32-битных процессоров больше нет.**
-Проект с открытыми исходниками: форк Afterlife Manager, основанного на ZettaBridge. ARM32-код переводится в ARM64 Dynarmic.
+Проект с открытыми исходниками: droidHLE, форк Afterlife Manager, основанного на ZettaBridge. ARM32-код переводится в ARM64 Dynarmic.
 
 [Read in English](README.md)
 

@@ -11,7 +11,7 @@
     <application
         android:name=".ZbApplication"
         android:allowBackup="false"
-        android:label="Afterlife Manager"
+        android:label="droidHLE"
         android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Material.Light.DarkActionBar">
 

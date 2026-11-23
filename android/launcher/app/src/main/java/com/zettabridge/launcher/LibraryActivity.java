@@ -87,7 +87,7 @@ public class LibraryActivity extends Activity {
         column.setPadding(dp(20), dp(28), dp(20), 0);
 
         TextView title = new TextView(this);
-        title.setText("Afterlife Manager");
+        title.setText("droidHLE");
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setTextColor(primaryText);
