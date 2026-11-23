@@ -4,11 +4,11 @@
 
 namespace zb {
 
-// Host-call indices for the six AAsset* functions HostAssets serves (Phase 5 Task 7). Hand-written
+// Host-call indices for the AAsset* functions HostAssets serves. Hand-written
 // from tools/gen_stubs.py's android_asset_names() output (core/src/gen/hostcalls.inc), which is the
 // generated source of truth: if gen_stubs.py's function list or ordering changes, update these to
 // match. The comment in core/include/zb/host_gl.h ("Serves the GLES range 0-141 and leaves 142-160
-// for HostAssets") documents the reserved range; only these six of the ~18 AAsset* stubs in that
+// for HostAssets") documents the reserved range; only these eight of the ~18 AAsset* stubs in that
 // range are implemented so far.
 inline constexpr std::uint32_t ZB_ASSET_HC_AAssetManager_fromJava = 145u;
 inline constexpr std::uint32_t ZB_ASSET_HC_AAssetManager_open = 146u;

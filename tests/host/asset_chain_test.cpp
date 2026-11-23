@@ -69,7 +69,7 @@ int main() {
 
     thread.regs()[0] = asset;
     thread.regs()[1] = 0xffffffffu;
-    CHECK(assets.handle_host_call(151u, thread));
+    CHECK(assets.handle_host_call(zb::ZB_ASSET_HC_AAsset_getLength64, thread));
     CHECK(thread.regs()[0] == 18 && thread.regs()[1] == 0);
 
     const std::uint32_t buffer_addr = 0x11100;
@@ -118,7 +118,7 @@ int main() {
     CHECK(assets.handle_host_call(zb::ZB_ASSET_HC_AAsset_close, thread));
 
     thread.regs()[0] = asset;
-    CHECK(assets.handle_host_call(151u, thread));
+    CHECK(assets.handle_host_call(zb::ZB_ASSET_HC_AAsset_getLength64, thread));
     CHECK(thread.regs()[0] == 0xffffffffu && thread.regs()[1] == 0xffffffffu);
 
     thread.regs()[0] = asset;
