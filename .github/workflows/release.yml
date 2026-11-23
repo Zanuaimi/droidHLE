@@ -75,13 +75,16 @@ jobs:
         run: tools/make_launcher_bundle.sh
 
       - name: Write release signing config
-        if: ${{ secrets.ANDROID_SIGNING_KEYSTORE_B64 != '' }}
         env:
           SIGNING_STORE_B64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_B64 }}
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
         run: |
+          if [ -z "$SIGNING_STORE_B64" ]; then
+            echo "No signing secrets set; the release APK stays unsigned."
+            exit 0
+          fi
           mkdir -p "$HOME/.zettabridge"
           echo "$SIGNING_STORE_B64" | base64 -d > "$HOME/.zettabridge/release.keystore"
           {
