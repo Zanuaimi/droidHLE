@@ -1,4 +1,4 @@
-name: release
+name: Build droidHLE
 
 on:
   workflow_dispatch:
