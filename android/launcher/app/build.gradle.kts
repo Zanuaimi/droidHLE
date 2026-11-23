@@ -23,7 +23,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "etonedemid.afterlife.manager"
+        applicationId = "com.droidhle.launcher"
         minSdk = 26
         targetSdk = 35
         versionCode = 2
@@ -55,6 +55,12 @@ android {
     sourceSets.getByName("main") {
         assets.srcDir(rootProject.file("../../build/launcher/assets"))
         jniLibs.srcDir(rootProject.file("../../build/launcher/jniLibs"))
+    }
+}
+
+android.applicationVariants.all {
+    outputs.all {
+        (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = "droidHLE-${name}.apk"
     }
 }
 
