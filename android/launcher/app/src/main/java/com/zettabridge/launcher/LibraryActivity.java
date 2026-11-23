@@ -53,6 +53,8 @@ import java.util.function.Predicate;
 public class LibraryActivity extends Activity {
     private static final String TAG = "zb-launcher";
     private static final int REQUEST_IMPORT = 1;
+    private static final int REQUEST_IMPORT_OBB = 2;
+    private String obbPackage;
 
     private final List<PluginRecord> plugins = new ArrayList<>();
     private BaseAdapter adapter;
@@ -69,6 +71,7 @@ public class LibraryActivity extends Activity {
         setTheme(Build.VERSION.SDK_INT >= 29 ? android.R.style.Theme_DeviceDefault_DayNight
                                             : android.R.style.Theme_DeviceDefault_Light);
         super.onCreate(state);
+        if (state != null) obbPackage = state.getString("obbPackage");
         accent = themeColor(android.R.attr.colorAccent);
         surface = themeColor(android.R.attr.colorBackgroundFloating);
         secondaryText = themeColor(android.R.attr.textColorSecondary);
@@ -288,6 +291,12 @@ public class LibraryActivity extends Activity {
         second.setMarginStart(dp(8));
         actions.addView(action("Home screen", false, v -> pinShortcut(r)), second);
         body.addView(actions);
+        Button importObb = action("Import OBB", false, v -> {
+            dialog[0].dismiss();
+            pickObb(r);
+        });
+        body.addView(importObb, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         section(body, "Graphics");
         toggle(body, r, "Anti-aliasing (4x MSAA)", "Smooth polygon edges", p -> p.msaa, (p, on) -> p.msaa = on);
@@ -381,6 +390,44 @@ public class LibraryActivity extends Activity {
         if (requestCode == REQUEST_IMPORT && resultCode == RESULT_OK && data != null && data.getData() != null) {
             importApk(data.getData());
         }
+        if (requestCode == REQUEST_IMPORT_OBB) {
+            PluginRecord record = obbPackage == null ? null : PluginStore.find(this, obbPackage);
+            obbPackage = null;
+            if (record != null && resultCode == RESULT_OK && data != null && data.getData() != null) {
+                importObb(record, data.getData());
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putString("obbPackage", obbPackage);
+    }
+
+    private void pickObb(PluginRecord record) {
+        obbPackage = record.packageName;
+        startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), REQUEST_IMPORT_OBB);
+    }
+
+    private void importObb(PluginRecord record, Uri uri) {
+        stopGuestProcess();
+        AlertDialog progress = new AlertDialog.Builder(this).setMessage("Importing OBB...")
+                .setCancelable(false).show();
+        new Thread(() -> {
+            String message;
+            try {
+                message = "Imported " + PluginStore.importObb(this, record, uri);
+            } catch (Exception failure) {
+                message = "OBB import failed: " + failure.getMessage();
+            }
+            String shown = message;
+            runOnUiThread(() -> {
+                progress.dismiss();
+                Toast.makeText(this, shown, Toast.LENGTH_LONG).show();
+            });
+        }, "zb-obb-import").start();
     }
 
     private void importApk(Uri uri) {

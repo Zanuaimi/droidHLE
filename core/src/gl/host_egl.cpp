@@ -9,6 +9,7 @@
 
 #include "zb/egl_hostcalls.h"
 #include "zb/guest_memory.h"
+#include "zb/hang_watchdog.h"
 #include "zb/library_protocol.h"
 #include "zb/log.h"
 #include "zb/runtime_report.h"
@@ -226,6 +227,7 @@ std::string egl_recent_calls() {
 
 bool HostEgl::handle_host_call(std::uint32_t index, GuestThread& thread) {
     if (index < kEglHostCallFirst || index > kEglHostCallLast) return false;
+    if (index == ZB_EGL_HC_eglSwapBuffers) record_render_thread(current_watch_tid());
     // A rejection never reaches the driver, so its error is served from here and takes
     // precedence over the driver's own sticky error.
     if (index == ZB_EGL_HC_eglGetError && t_pending_error != kEglSuccess) {
@@ -242,6 +244,13 @@ bool HostEgl::handle_host_call(std::uint32_t index, GuestThread& thread) {
         const std::uint64_t slot = g_recent_egl_next.fetch_add(1, std::memory_order_relaxed) % kRecentEglCalls;
         g_recent_egl[slot].index.store(index, std::memory_order_relaxed);
         g_recent_egl[slot].result.store(thread.regs()[0], std::memory_order_relaxed);
+        if (index == ZB_EGL_HC_eglCreateWindowSurface || index == ZB_EGL_HC_eglDestroySurface ||
+            index == ZB_EGL_HC_eglMakeCurrent) {
+            char detail[64];
+            std::snprintf(detail, sizeof detail, "tid=%ld result=0x%08x",
+                          ::syscall(SYS_gettid), thread.regs()[0]);
+            runtime_report().note_egl_object(kEglHostCalls[index - kEglHostCallFirst].name, detail);
+        }
         return true;
     }
     log("EGL host call index %u has no generated handler", index);

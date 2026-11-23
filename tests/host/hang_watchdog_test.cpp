@@ -2,6 +2,7 @@
 // with a fake snapshot source and an explicit clock so it needs no real guest thread or timing.
 #include <chrono>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "check.h"
@@ -17,9 +18,18 @@ bool contains(const std::string& text, const std::string& part) {
 }  // namespace
 
 int main() {
+    const auto calling_tid = zb::current_watch_tid();
+    std::thread other([&] {
+        const auto tid = zb::current_watch_tid();
+        CHECK(tid > 0 && tid != calling_tid && tid == zb::current_watch_tid());
+    });
+    other.join();
     // record_thread_activity / snapshot_thread_activity: a fresh tid claims a slot, repeated
     // calls bump the counter and update the recorded activity in place.
     zb::record_thread_activity(9001, zb::ThreadActivityKind::kSyscall, 3);
+    for (const auto& sample : zb::snapshot_thread_activity()) {
+        if (sample.tid == 9001) CHECK(sample.in_progress);
+    }
     zb::record_thread_activity(9001, zb::ThreadActivityKind::kSyscall, 3);
     zb::record_thread_activity(9001, zb::ThreadActivityKind::kHostCall, 0x2a);
     {
@@ -105,6 +115,28 @@ int main() {
     now2 += std::chrono::seconds(3);
     CHECK(!watchdog2.sample(now2));
     CHECK(zb::runtime_report().text().find("watch-1") == std::string::npos);
+
+    for (int i = 1; i <= 6; ++i) {
+        zb::runtime_report().note_watch_detail("threads-" + std::to_string(i), "thread census");
+    }
+    zb::runtime_report().note_watch_detail("threads-platform", "platform thread census");
+    zb::HangWatchdog crowded([] {
+        std::vector<zb::ThreadActivitySample> out;
+        for (int tid = 100; tid < 110; ++tid) {
+            out.push_back({tid, zb::ThreadActivityKind::kSyscall, 3, 1, false});
+        }
+        out.push_back({999, zb::ThreadActivityKind::kHostCall, 0x2a, 1, true, 0x1234, 0x5678});
+        return out;
+    });
+    zb::record_render_thread(109);  // Outside the general report's five slots.
+    for (std::size_t i = 0; i < zb::HangWatchdog::kMaxNotes + 3; ++i) {
+        crowded.sample(now);
+        now += zb::HangWatchdog::kInterval;
+    }
+    const auto latest = zb::runtime_report().text();
+    CHECK(contains(latest, "watch-latest: 999=host:0x2a(inside)"));
+    CHECK(contains(latest, "pc=0x00001234 lr=0x00005678"));
+    CHECK(contains(latest, "watch-render: host-tid=109"));
 
     std::puts("hang_watchdog_test: ok");
     return 0;

@@ -60,6 +60,7 @@ public:
     // queue and the looper is simply woken, so a guest that waits for its ident would wait
     // forever. The poll asks this after every wake-up.
     std::optional<Ready> ready_on(std::uint64_t real_looper);
+    bool accept_platform_ready(std::uint64_t real_looper, std::int32_t ident, std::uint32_t data);
 
 private:
     const void* live_event(std::uint32_t handle) const;
@@ -81,11 +82,16 @@ private:
     std::unordered_map<std::uint32_t, std::uint32_t> live_events_;
     std::string first_rejection_;
     struct Attachment {
-        std::uint64_t real_looper = 0;
         std::int32_t ident = 0;
         std::uint32_t data = 0;
+        // Set when a poll reported this queue as ready, cleared when the guest takes an event
+        // from it. Without it a guest that polls in a loop is told "input ready" on every pass
+        // and spins: 124583 idents against 903 events taken, with the game hung and the audio
+        // thread still running.
+        bool announced = false;
     };
-    std::unordered_map<std::uint32_t, Attachment> attachments_;  // by queue handle
+    // Android can attach one queue to several real loopers.
+    std::unordered_map<std::uint32_t, std::unordered_map<std::uint64_t, Attachment>> attachments_;
     std::size_t rejections_ = 0;
     std::size_t events_gotten_ = 0;
     std::size_t events_pre_dispatched_ = 0;

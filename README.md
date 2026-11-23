@@ -13,6 +13,8 @@ on. See [README.upstream.md](README.upstream.md) for the ZettaBridge project bac
 
 Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
 
+No root, custom ROM, or system image changes required.
+
 | Game | Engine | Status |
 |---|---|---|
 | Granny Smith (Mediocre) | NativeActivity | Playable, sound, input |
@@ -23,8 +25,10 @@ Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
 **Compatibility**
 - Guest OpenSL ES (`guest/opensles/zbopensles.c`): all players mixed on one thread into a
   single 44.1 kHz stream, played by `GuestAudio` through `AudioTrack`.
-- NDK input glue fixes: `AInputQueue_attachLooper` data argument, ident-only looper
-  registrations.
+- NDK input glue fixes: `AInputQueue_attachLooper` stack argument, multi-looper registrations,
+  and readiness deduplication.
+- OBB expansion files can be imported into the plugin's expected Android OBB directory.
+- 64-bit `AAsset` lengths and plugin-package resource lookup support more legacy games.
 - Implicit service intents fail like on pre-Lollipop Android, instead of crashing (billing).
 - Libraries named after the package (Marmalade's `lib<app>.so`) and Apache HTTP legacy on the
   classpath for old targetSdk.
@@ -37,6 +41,7 @@ Tested on a Samsung Galaxy S25+ (SM-S936B, Snapdragon 8 Elite):
 - Tools: **memory editor**, a floating MEM button in game. Scan for a 4-byte integer or float,
   narrow the hits with next scan / changed / same / up / down, then set or freeze values.
 - Debugging: precise faults, GL diagnostics.
+- Include the per-game **Last run report** when reporting a compatibility issue.
 
 **Launcher**
 - Grid library with day/night theme, import button, home-screen shortcuts.

@@ -8,6 +8,7 @@
 
 namespace zb {
 
+class LibraryRuntime;
 // Hang diagnostics: a guest that stops making progress (gray screen, no crash) leaves nothing
 // in the crash report, because nothing crashed. This records, per guest thread, the last thing
 // it did on its way out of translated code, and a background thread periodically checks whether
@@ -20,15 +21,22 @@ enum class ThreadActivityKind : std::uint8_t {
     kHostCall = 2,
 };
 
-// Records that guest thread `tid` just performed a syscall (`id` = syscall number) or a host
+// The Android/Linux tid of the executing thread. A borrower and its parked carrier
+// share a guest tid but run on different host threads.
+std::int32_t current_watch_tid();
+
+// Records that host thread `tid` just performed a guest syscall (`id` = syscall number) or a host
 // call (`id` = host-call index). Lock-free, allocation-free, safe from any thread: called on
 // every syscall and every host call, so it must stay cheap.
-void record_thread_activity(std::int32_t tid, ThreadActivityKind kind, std::uint32_t id);
+void record_thread_activity(std::int32_t tid, ThreadActivityKind kind, std::uint32_t id,
+                            std::uint32_t pc = 0, std::uint32_t lr = 0);
 
 // The host call recorded last for this thread has returned. A thread whose last recorded event is
 // still in progress is blocked inside our own code, which reads very differently from a guest
 // that simply stopped calling out.
 void record_thread_activity_done(std::int32_t tid);
+// Tracks the guest thread presenting frames, even when idle workers fill the general report.
+void record_render_thread(std::int32_t host_tid);
 
 struct ThreadActivitySample {
     std::int32_t tid = 0;
@@ -36,6 +44,8 @@ struct ThreadActivitySample {
     std::uint32_t id = 0;
     std::uint64_t counter = 0;
     bool in_progress = false;  // still inside the recorded host call or syscall
+    std::uint32_t pc = 0;
+    std::uint32_t lr = 0;
 };
 
 // A snapshot of every guest thread slot touched so far.
@@ -54,8 +64,8 @@ public:
 
     static constexpr std::chrono::seconds kInterval{3};
     static constexpr int kStuckThreshold = 2;      // consecutive unchanged samples
-    static constexpr std::size_t kMaxNotes = 6;    // report lines this watchdog will ever write
-    static constexpr std::size_t kMaxThreadsShown = 8;
+    static constexpr std::size_t kMaxNotes = 6;    // fixed history before updating the latest line
+    static constexpr std::size_t kMaxThreadsShown = 5;
 
     explicit HangWatchdog(SnapshotFn snapshot = snapshot_thread_activity);
 
@@ -63,7 +73,7 @@ public:
     bool sample(Clock::time_point now);
 
     // Runs sample() every kInterval, forever, on the calling thread.
-    [[noreturn]] void run_forever();
+    [[noreturn]] void run_forever(const LibraryRuntime& runtime);
 
 private:
     struct State {
@@ -73,6 +83,9 @@ private:
         std::uint64_t counter = 0;
         Clock::time_point since{};  // when this (kind, id, counter) was first observed
         int unchanged_samples = 0;
+        bool in_progress = false;
+        std::uint32_t pc = 0;
+        std::uint32_t lr = 0;
     };
 
     SnapshotFn snapshot_;
@@ -82,6 +95,6 @@ private:
 
 // Starts the watchdog on a detached background thread, once per process. GuestJniEngine calls
 // this when the runtime starts; the runtime is process-lifetime, so there is no shutdown path.
-void start_hang_watchdog();
+void start_hang_watchdog(const LibraryRuntime& runtime);
 
 }  // namespace zb

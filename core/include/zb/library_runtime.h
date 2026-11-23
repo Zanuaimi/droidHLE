@@ -18,7 +18,10 @@ namespace zb {
 
 struct LibraryRuntimeOptions {
     std::string zbhost;   // host path of the arm32 zbhost executable
-    std::string sysroot;  // host directory with the arm32 system files
+    std::string sysroot;
+    // Where the arm32 stub libraries of the bridge live. A guest that opens a platform library by
+    // absolute path is answered from here (ProxyRuntime::activate_plugin).
+    std::string guest_lib_dir;
     std::uint32_t target_sdk = 0;
     std::vector<std::string> guest_environment;  // guest environment, e.g. LD_LIBRARY_PATH=...
     std::string preload;            // guest path dlopen'ed RTLD_GLOBAL before READY; empty: none
@@ -67,6 +70,7 @@ public:
     const zb_service_api& service_api() const;
     // Real guest pthreads (service, carriers, guest-created threads); borrowers are not counted.
     std::size_t guest_thread_count() const;
+    std::string pending_signal_summary() const;
     // True when this guest thread is a borrower: a host thread that entered the guest on a leased
     // carrier. Such a thread came from Java and has its own real Android looper, so guest loopers
     // prepared on it cannot be driven by us. False for the service thread, a carrier and every

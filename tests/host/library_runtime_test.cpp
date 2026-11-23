@@ -5,6 +5,7 @@
 // Usage: library_runtime_test <sysroot> <zbhost> <libzbcallprobe.so>
 //        library_runtime_test --signal-target-retirement
 #include <signal.h>
+#include <sys/syscall.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -65,6 +66,40 @@ namespace {
 using namespace std::chrono_literals;
 using Clock = std::chrono::steady_clock;
 using GuestInvoke = std::function<std::optional<zb::GuestResult>(std::uint32_t function, const zb::GuestCall& args)>;
+
+void check_borrower_syscall_interrupt() {
+    zb::GuestMemory memory;
+    Dynarmic::ExclusiveMonitor monitor(1);
+    zb::GuestThread borrower(memory, &monitor, 0);
+    // The guest's identity belongs to the carrier, but its syscall runs on the borrower.
+    borrower.tid = static_cast<std::int32_t>(::syscall(SYS_gettid));
+    const int wake_signal = zb::host_interrupt_signal();
+    sigset_t wake_set, original_mask;
+    sigemptyset(&wake_set);
+    sigaddset(&wake_set, wake_signal);
+    CHECK(pthread_sigmask(SIG_BLOCK, &wake_set, &original_mask) == 0);
+
+    std::promise<void> blocking;
+    std::thread owner([&] {
+        borrower.begin_blocking();
+        blocking.set_value();
+        const timespec timeout{1, 0};
+        const int received = sigtimedwait(&wake_set, nullptr, &timeout);
+        borrower.end_blocking();
+        CHECK(received == wake_signal);
+    });
+    blocking.get_future().wait();
+    zb::g::siginfo32 info{};
+    info.si_signo = SIGUSR1;
+    borrower.post_signal(info);
+    owner.join();
+
+    sigset_t pending;
+    CHECK(sigpending(&pending) == 0);
+    CHECK(sigismember(&pending, wake_signal) == 0);
+    CHECK(pthread_sigmask(SIG_SETMASK, &original_mask, nullptr) == 0);
+    CHECK(borrower.take_signal(0, info) && info.si_signo == SIGUSR1);
+}
 
 void check_signal_target_retirement() {
     zb::GuestMemory memory;
@@ -292,6 +327,7 @@ int main(int argc, char** argv) {
     CHECK(argc == 4);
     const std::string probe = argv[3];
     const std::string libdir = std::filesystem::path(probe).parent_path();
+    check_borrower_syscall_interrupt();
     check_preload_failure(argv);
     check_signal_target_retirement();
     check_signal_target_acquire_order();
@@ -419,11 +455,26 @@ int main(int argc, char** argv) {
     // tgkill to the borrowed carrier's tid is delivered on the borrower during the call.
     const auto installed = first->call(symbol("zb_probe_install_usr1"), zb::GuestCall{});
     CHECK(installed && installed->r0 == 0);
-    const auto killed = first->call(symbol("zb_probe_tgkill_self"), args1(SIGUSR1));
+    const auto tgkill = symbol("zb_probe_tgkill");
+    const auto killed = first->call(tgkill, args1(SIGUSR1));
     CHECK(killed && killed->r0 == 0);
     CHECK(read32(runtime, symbol("zb_usr1_count")) == 1);
     CHECK(read32(runtime, symbol("zb_usr1_tid")) == tid->r0);
     CHECK(read32(runtime, symbol("zb_usr1_tls")) == tls->r0);
+
+    // A signal sent while the owner is back in host code waits for its next guest entry.
+    zb::GuestCall send_usr1 = args1(SIGUSR1);
+    send_usr1.regs[1] = tid->r0;
+    const auto queued = runtime.call_on_service(tgkill, send_usr1);
+    CHECK(queued && queued->r0 == 0);
+    const auto owner_tid = ::syscall(SYS_gettid);
+    CHECK(runtime.pending_signal_summary().find("guest=" + std::to_string(tid->r0) +
+                                                " host=" + std::to_string(owner_tid) + " idle mask=") !=
+          std::string::npos);
+    CHECK(read32(runtime, symbol("zb_usr1_count")) == 1);
+    CHECK(first->call(return_i, zb::GuestCall{}));
+    CHECK(read32(runtime, symbol("zb_usr1_count")) == 2);
+    CHECK(runtime.pending_signal_summary() == "(none)");
 
     // setitimer from a borrower: SIGALRM is process-directed and reaches the parked service.
     const auto armed_on_carrier = first->call(arm_alarm, args1(20000));

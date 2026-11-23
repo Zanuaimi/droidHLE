@@ -298,6 +298,32 @@ std::size_t Process::thread_count() const {
     return threads_.size();
 }
 
+std::string Process::pending_signal_summary() const {
+    std::unique_lock lock(threads_mutex_, std::try_to_lock);
+    if (!lock.owns_lock()) return "(thread registry busy)";
+
+    std::string result;
+    std::size_t count = 0;
+    const auto append = [&](const GuestThread& thread) {
+        const auto pending = thread.pending_signals();
+        if (pending == 0 || ++count > 5) return;
+        const auto owner = thread.borrower_host_tid;
+        const char* state = thread.blocking_host_tid() != 0 ? "syscall" :
+                            owner != 0 && !thread.borrower_in_guest.load() ? "idle" : "active";
+        char entry[96];
+        std::snprintf(entry, sizeof entry, "guest=%d host=%d %s mask=0x%016llx",
+                      thread.tid, owner != 0 ? owner : thread.tid, state,
+                      static_cast<unsigned long long>(pending));
+        if (!result.empty()) result += " | ";
+        result += entry;
+    };
+    // Report borrowers first: a Java thread can keep its guest identity between native calls.
+    for (const GuestThread* thread : borrowers_) append(*thread);
+    for (const GuestThread* thread : threads_) append(*thread);
+    if (count > 5) result += " | more=" + std::to_string(count - 5);
+    return result.empty() ? "(none)" : result;
+}
+
 bool Process::is_borrower(const GuestThread& thread) const {
     std::lock_guard<std::mutex> lock(threads_mutex_);
     for (const GuestThread* t : borrowers_) {
@@ -359,6 +385,7 @@ std::unique_ptr<GuestThread> Process::create_borrower(GuestThread& carrier) {
     borrower->set_fpscr(carrier.fpscr());
     borrower->set_tls(carrier.tls());
     borrower->tid = carrier.tid;
+    borrower->borrower_host_tid = current_watch_tid();
     borrower->sigmask = carrier.sigmask;
     borrower->altstack = carrier.altstack;
     std::lock_guard<std::mutex> lock(threads_mutex_);
@@ -519,7 +546,8 @@ bool Process::dispatch_stop(GuestThread& thread, const Stop& stop) {
         }
         if ((stop.swi & 0xFF0000u) == kHostCallBase) {
             const std::uint32_t index = stop.swi & 0xFFFFu;
-            record_thread_activity(thread.tid, ThreadActivityKind::kHostCall, index);
+            const auto watch_tid = current_watch_tid();
+            record_thread_activity(watch_tid, ThreadActivityKind::kHostCall, index, stop.pc, thread.regs()[14]);
             // A host call is host C++ called from translated guest code, and an exception that
             // escapes it has no frame above to catch it: the process dies with "terminating" and
             // nothing else. The name of the call and the reason are worth far more than the
@@ -532,7 +560,7 @@ bool Process::dispatch_stop(GuestThread& thread, const Stop& stop) {
                 std::string detail = std::string(failed_library) + ":" + failed_name + ": " + failure.what();
                 log("host call %s threw: %s", failed_name, failure.what());
                 runtime_report().note_jni_detail("host-call-threw", detail, true);
-                record_thread_activity_done(thread.tid);
+                record_thread_activity_done(watch_tid);
                 request_exit(70);
                 return false;
             } catch (...) {
@@ -540,12 +568,12 @@ bool Process::dispatch_stop(GuestThread& thread, const Stop& stop) {
                 log("host call %s threw a non-standard exception", failed_name);
                 runtime_report().note_jni_detail("host-call-threw",
                                                  std::string(failed_library) + ":" + failed_name, true);
-                record_thread_activity_done(thread.tid);
+                record_thread_activity_done(watch_tid);
                 request_exit(70);
                 return false;
             }
             if (served) {
-                record_thread_activity_done(thread.tid);
+                record_thread_activity_done(watch_tid);
                 return !exiting_;
             }
             const auto [library, name] = host_call_name(index);
@@ -555,6 +583,7 @@ bool Process::dispatch_stop(GuestThread& thread, const Stop& stop) {
             // The guest keeps running with r0 = 0; the report is the only record that survives a
             // device run, because OxygenOS drops our logcat output.
             runtime_report().note_unimplemented_host_call(index, library, name);
+            record_thread_activity_done(watch_tid);
             thread.regs()[0] = 0;
             return true;
         }

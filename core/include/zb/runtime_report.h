@@ -14,10 +14,10 @@ namespace zb {
 
 // A stable per-bound-native-method call counter (Java -> guest native-call census). HostJni
 // creates one per method when it is bound (register_native) and caches the pointer in the
-// method's thunk slot, so every later Java -> guest call costs one relaxed atomic add and no
-// lock. RuntimeReport owns the counters so they outlive the HostJni slot table in reports.
+// method's thunk slot. RuntimeReport owns the counters so they outlive the HostJni slot table.
 struct NativeCallCounter {
     std::atomic<std::uint64_t> count{0};
+    std::atomic<std::uint64_t> pending{0};
 };
 
 // Diagnostics that must survive a silent :guest death. OxygenOS drops third-party logcat
@@ -55,7 +55,7 @@ public:
     // separately, later ones share one overflow counter. Call once, at registration; cache the
     // returned pointer and increment it with a relaxed atomic add per call, never through this
     // method again.
-    static constexpr std::size_t kMaxNativeCalls = 32;
+    static constexpr std::size_t kMaxNativeCalls = 128;
     NativeCallCounter& native_call_counter(const std::string& name);
     // The first reason wins: a crash report says more than the exit status that follows it.
     void note_guest_exit(const std::string& reason);
@@ -212,7 +212,8 @@ private:
     std::vector<std::pair<std::string, std::string>> crash_details_;
     static constexpr std::size_t kMaxJniDetails = 16;
     std::vector<std::pair<std::string, std::string>> jni_details_;
-    static constexpr std::size_t kMaxWatchDetails = 8;
+    // Thread census chunks share this budget with the history, latest and render lines.
+    static constexpr std::size_t kMaxWatchDetails = 32;
     std::vector<std::pair<std::string, std::string>> watch_details_;
     static constexpr std::size_t kMaxLooperDetails = 16;
     std::vector<std::pair<std::string, std::string>> looper_details_;

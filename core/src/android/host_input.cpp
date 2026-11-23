@@ -33,6 +33,7 @@ std::size_t HostInput::remove_queue(std::uint32_t handle) {
     std::vector<std::uint32_t> orphans;
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        attachments_.erase(handle);
         for (const auto& [event, owner] : live_events_) {
             if (owner == handle) orphans.push_back(event);
         }
@@ -90,21 +91,47 @@ void HostInput::report_queue_state() {
 
 std::optional<HostInput::Ready> HostInput::ready_on(std::uint64_t real_looper) {
     if (real_looper == 0) return std::nullopt;
-    std::vector<std::pair<std::uint32_t, Attachment>> candidates;
+    std::vector<std::uint32_t> candidates;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        for (const auto& [handle, attachment] : attachments_) {
-            if (attachment.real_looper == real_looper) candidates.emplace_back(handle, attachment);
+        for (const auto& [handle, loopers] : attachments_) {
+            const auto entry = loopers.find(real_looper);
+            if (entry != loopers.end() && !entry->second.announced) candidates.push_back(handle);
         }
     }
     // The backend is asked outside the lock: it is the platform, and nothing guest-facing should
     // wait on this unit's own mutex.
-    for (const auto& [handle, attachment] : candidates) {
+    for (const auto handle : candidates) {
         void* queue = queue_for(handle);
         if (queue == nullptr) continue;
-        if (backend_.queue_has_events(queue) > 0) return Ready{attachment.ident, attachment.data};
+        if (backend_.queue_has_events(queue) <= 0) continue;
+        std::lock_guard<std::mutex> lock(mutex_);
+        const auto queue_entry = attachments_.find(handle);
+        if (queue_entry == attachments_.end()) continue;
+        const auto entry = queue_entry->second.find(real_looper);
+        if (entry == queue_entry->second.end() || entry->second.announced) continue;
+        Attachment& attachment = entry->second;
+        attachment.announced = true;
+        return Ready{attachment.ident, attachment.data};
     }
     return std::nullopt;
+}
+
+bool HostInput::accept_platform_ready(std::uint64_t real_looper, std::int32_t ident,
+                                      std::uint32_t data) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    Attachment* match = nullptr;
+    for (auto& entry : attachments_) {
+        const auto found = entry.second.find(real_looper);
+        if (found == entry.second.end() || found->second.ident != ident || found->second.data != data) continue;
+        // Without a unique match, let the guest handle the platform result as usual.
+        if (match != nullptr) return true;
+        match = &found->second;
+    }
+    if (match == nullptr) return true;
+    if (match->announced) return false;
+    match->announced = true;
+    return true;
 }
 
 bool HostInput::reject(const char* function, std::uint32_t handle) {
@@ -148,10 +175,18 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
             std::lock_guard<std::mutex> lock(mutex_);
             live_events_[handle] = regs[0];
             ++events_gotten_;
+            const auto attachment = attachments_.find(regs[0]);
+            if (attachment != attachments_.end()) {
+                for (auto& entry : attachment->second) entry.second.announced = false;
+            }
         }
         std::memcpy(out, &handle, sizeof handle);
         regs[0] = static_cast<std::uint32_t>(status);
-        if (event != nullptr) report_queue_state();
+        if (event != nullptr) {
+            report_queue_state();
+        } else {
+            runtime_report().note_jni_detail("input-get-empty", std::to_string(status), false);
+        }
         return true;
     }
     case ZB_INPUT_HC_AInputQueue_preDispatchEvent: {
@@ -209,7 +244,12 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
         // regs[1] is the guest's looper, regs[3] its callback. The data pointer is the fifth
         // argument, so under the AAPCS it is on the guest stack at [sp], not in r4: r4 is just
         // whatever the caller kept there (the NDK glue keeps its android_app in it, and handing
-        // that back from the poll makes the glue call onInputEvent as if it were a source). A host
+        // that back from the poll makes the glue call onInputEvent as if it were a source).
+        const auto* stack =
+            runtime_.memory().host_ptr(regs[13], sizeof(std::uint32_t), kPageRead);
+        if (stack == nullptr) return reject("AInputQueue_attachLooper stack", regs[13]);
+        std::uint32_t data;
+        std::memcpy(&data, stack, sizeof data);
         // AInputQueue has no descriptor we could poll, so this thread must first have a real
         // Android looper; the queue then goes to it and the guest's own poll picks it up.
         std::uint64_t real_looper = 0;
@@ -218,12 +258,6 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
             runtime_report().note_jni_detail("input-attach", "no real looper on this thread", true);
             log("AInputQueue_attachLooper: this thread has no real looper, so the queue will not "
                 "deliver");
-        }
-        std::uint32_t data = 0;
-        if (const std::uint8_t* arg = runtime_.memory().host_ptr(regs[13], sizeof data, kPageRead)) {
-            std::memcpy(&data, arg, sizeof data);
-        } else {
-            log("AInputQueue_attachLooper: the data argument at sp 0x%08x is unreadable", regs[13]);
         }
         if (regs[3] != 0) {
             // The guest wants its own callback run by the looper. Unity's glue passes none and
@@ -237,12 +271,12 @@ bool HostInput::handle_host_call(std::uint32_t index, GuestThread& thread) {
                                      reinterpret_cast<void*>(static_cast<std::uintptr_t>(data)), real_looper);
         {
             std::lock_guard<std::mutex> lock(mutex_);
-            attachments_[regs[0]] = Attachment{real_looper, static_cast<std::int32_t>(regs[2]), data};
+            attachments_[regs[0]].try_emplace(real_looper, Attachment{static_cast<std::int32_t>(regs[2]), data});
         }
         char detail[160];
-        std::snprintf(detail, sizeof detail, "ident %u looper 0x%08x owner-tid %d caller-tid %d%s",
+        std::snprintf(detail, sizeof detail, "ident %u looper 0x%08x owner-tid %d caller-tid %d data 0x%08x%s",
                       regs[2], regs[1], looper_owner_ ? looper_owner_(regs[1]) : 0, thread.tid,
-                      real_looper != 0 ? "" : " (no real looper)");
+                      data, real_looper != 0 ? "" : " (no real looper)");
         runtime_report().note_jni_detail("input-attach", detail, true);
         regs[0] = 0;
         return true;

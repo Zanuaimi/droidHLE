@@ -137,6 +137,7 @@ LibraryRuntimeOptions guest_runtime_options(const GuestRuntimeLayout& layout, co
     options.target_sdk = target_sdk;
     options.preload = "libzbjni.so";
     options.guest_environment = {"LD_LIBRARY_PATH=" + layout.guest_lib_dir + ":" + plugin_root + "/lib"};
+    options.guest_lib_dir = layout.guest_lib_dir;
     return options;
 }
 
@@ -193,6 +194,15 @@ bool ProxyRuntime::activate_plugin(JniBackend::Env env, const std::string& plugi
         // opens something beside "its own" library finds the real thing (IL2CPP does exactly
         // this and otherwise reports that it cannot load).
         engine_.add_path_alias(root + "/proxy/", root + "/lib/");
+        // Old guests open platform libraries by absolute path: Unity's shim does
+        // dlopen("/system/lib/libandroid.so") and resolves AMotionEvent_* out of it. That path
+        // holds the device's own 64-bit library, which the guest linker cannot load, so the
+        // handle came back null, every lookup after it answered null, and the guest eventually
+        // called one of those nulls. Each library we ship a 32-bit stub for answers from there.
+        for (const char* name : {"libandroid.so", "libEGL.so", "libGLESv2.so", "libGLESv1_CM.so",
+                                 "libjnigraphics.so"}) {
+            engine_.add_path_alias("/system/lib/" + std::string(name), options.guest_lib_dir + "/" + name);
+        }
         target_sdk_ = target_sdk;
         options_ = std::move(options);
         log("guest JNI runtime: plugin %s activated (targetSdk %u)", root.c_str(), target_sdk);
@@ -419,6 +429,10 @@ GuestJniEngine::GuestJniEngine(JniBackend& backend, GlBackend* gl_backend, HostG
                                     },
                                     [looper](std::uint32_t handle) { return looper->owner_of(handle); });
         HostInput* input = host_input_;
+        host_looper_->set_platform_input_filter([input](std::uint64_t real, std::int32_t ident,
+                                                       std::uint32_t data) {
+            return input->accept_platform_ready(real, ident, data);
+        });
         host_looper_->set_input_probe([input](std::uint64_t real) -> std::optional<HostLooper::InputReady> {
             const std::optional<HostInput::Ready> ready = input->ready_on(real);
             if (!ready) return std::nullopt;
@@ -489,7 +503,7 @@ bool GuestJniEngine::start(const LibraryRuntimeOptions& options, std::string& er
         return false;
     }
     // Process-lifetime, like the runtime itself: no shutdown path, started once.
-    start_hang_watchdog();
+    start_hang_watchdog(*runtime_);
     return true;
 }
 
@@ -514,6 +528,9 @@ bool GuestJniEngine::create_native_activity(JniBackend::Env env, std::uint64_t a
         return false;
     }
     description.guest_vm = host_jni_->guest_java_vm();
+    // The activity's own JNIEnv. Leaving it zero is what made Unity jump to address zero: it
+    // reads this field, loads the function table through it and calls into Java from there.
+    description.guest_env = host_jni_->guest_env_on_current_thread();
     // The activity object is held for the life of the activity: the guest keeps the jobject in
     // its own structure and calls Java through it long after this returns.
     description.activity_handle = host_jni_->new_global_handle(backend_.new_global_ref(env, facts.activity_object));

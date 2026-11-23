@@ -165,7 +165,17 @@ bool Process::dispatch_pending_signals(GuestThread& thread) {
     g::siginfo32 info;
     while (thread.take_signal(thread.sigmask, info)) {
         if (!deliver_signal(thread, info, false)) {
-            log("guest terminated by signal %d", info.si_signo);
+            // A guest that calls abort() (an assertion inside its engine, most of the time) ends
+            // here, and the exit status alone says nothing about where. The program counter and
+            // the library it falls in are what can be acted on, and this ROM shows no logcat of
+            // ours, so the report is the only place they survive.
+            const std::uint32_t pc = thread.regs()[15];
+            const std::string where = describe_address(pc);
+            char detail[192];
+            std::snprintf(detail, sizeof detail, "guest terminated by signal %d at pc 0x%08x %s",
+                          info.si_signo, pc, where.c_str());
+            log("%s", detail);
+            runtime_report().note_guest_exit(detail);
             request_exit(128 + info.si_signo);
             return false;
         }
@@ -181,6 +191,33 @@ bool Process::deliver_fault(GuestThread& thread, const Stop& stop) {
         info.fields[0] = stop.fault_addr;
     } else {
         const bool breakpoint = stop.exception == Dynarmic::A32::Exception::Breakpoint;
+        if (!breakpoint) {
+            // An instruction the translator does not know. The guest often has a handler for it
+            // (mono turns it into an ExecutionEngineException and aborts later), so without this
+            // the only trace left is an abort far away from the cause. The bytes are what a new
+            // decoder entry is written from.
+            static std::atomic<unsigned> seen{0};
+            const unsigned number = seen.fetch_add(1) + 1;
+            if (number <= 4) {
+                std::uint32_t word = 0;
+                if (const std::uint8_t* code = mem_.host_ptr(stop.pc, 4, kPageRead)) {
+                    std::memcpy(&word, code, sizeof word);
+                }
+                // The link register names the caller, which is the whole answer when the guest
+                // jumped to an address it was handed: at pc 0 there is nothing to disassemble,
+                // but the instruction after the call is in a library we can name.
+                const std::uint32_t lr = thread.regs()[14];
+                char detail[320];
+                std::snprintf(detail, sizeof detail, "pc 0x%08x %s bytes %08x%s, called from 0x%08x %s",
+                              stop.pc, describe_address(stop.pc).c_str(), word,
+                              (thread.cpsr() & 0x20u) != 0 ? " thumb" : " arm", lr,
+                              describe_address(lr & ~1u).c_str());
+                log("undefined instruction: %s", detail);
+                runtime_report().note_jni_detail("undefined-instruction-" + std::to_string(number), detail,
+                                                 true);
+            }
+            runtime_report().note_jni_detail("undefined-instructions", std::to_string(number), true);
+        }
         info.si_signo = breakpoint ? SIGTRAP : SIGILL;
         info.si_code = breakpoint ? static_cast<std::int32_t>(TRAP_BRKPT) : static_cast<std::int32_t>(ILL_ILLOPC);
         info.fields[0] = stop.pc;

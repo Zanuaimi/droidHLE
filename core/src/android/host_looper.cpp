@@ -130,6 +130,7 @@ struct HostLooper::Impl {
     };
 
     InputProbe input_probe;
+    PlatformInputFilter platform_input_filter;
 
     Impl(LibraryRuntime& runtime_, AndroidLooperBackend* backend_, GuestInvoker invoker_,
          BorrowerProbe borrower_probe_)
@@ -154,6 +155,8 @@ struct HostLooper::Impl {
     std::atomic<std::uint64_t> report_polls_callback{0};
     std::atomic<std::uint64_t> report_polls_error{0};
     std::atomic<std::uint64_t> report_polls_ident{0};
+    std::atomic<std::uint64_t> report_platform_ident{0};
+    std::atomic<std::uint64_t> report_queue_probe_ident{0};
     std::atomic<std::uint64_t> report_callbacks{0};
     std::atomic<std::uint64_t> report_callbacks_unregistered{0};
     std::atomic<std::uint64_t> report_wakes{0};
@@ -180,15 +183,18 @@ struct HostLooper::Impl {
     }
 
     void report_polls_line() {
-        char buf[192];
+        char buf[256];
         std::snprintf(buf, sizeof buf,
-                      "total=%llu wake=%llu timeout=%llu callback=%llu error=%llu ident=%llu",
+                      "total=%llu wake=%llu timeout=%llu callback=%llu error=%llu ident=%llu "
+                      "platform-ident=%llu queue-probe-ident=%llu",
                       static_cast<unsigned long long>(report_polls.load(std::memory_order_relaxed)),
                       static_cast<unsigned long long>(report_polls_wake.load(std::memory_order_relaxed)),
                       static_cast<unsigned long long>(report_polls_timeout.load(std::memory_order_relaxed)),
                       static_cast<unsigned long long>(report_polls_callback.load(std::memory_order_relaxed)),
                       static_cast<unsigned long long>(report_polls_error.load(std::memory_order_relaxed)),
-                      static_cast<unsigned long long>(report_polls_ident.load(std::memory_order_relaxed)));
+                      static_cast<unsigned long long>(report_polls_ident.load(std::memory_order_relaxed)),
+                      static_cast<unsigned long long>(report_platform_ident.load(std::memory_order_relaxed)),
+                      static_cast<unsigned long long>(report_queue_probe_ident.load(std::memory_order_relaxed)));
         runtime_report().note_looper_detail("polls", buf, true);
     }
 
@@ -709,6 +715,22 @@ struct HostLooper::Impl {
             int ready_events = 0;
             void* ready_data = nullptr;
             int result = backend->poll_once(timeout, &ready_fd, &ready_events, &ready_data);
+            if (result >= 0 &&
+                report_platform_ident.fetch_add(1, std::memory_order_relaxed) == 0) {
+                char detail[160];
+                std::snprintf(detail, sizeof detail,
+                              "tid=%d ident=%d fd=%d events=0x%x data=%p out-data=0x%08x",
+                              static_cast<int>(thread.tid), result, ready_fd,
+                              static_cast<unsigned>(ready_events), ready_data, out_data);
+                runtime_report().note_looper_detail("first-platform-ident", detail, false);
+            }
+            if (result >= 0 && platform_input_filter &&
+                !platform_input_filter(backend->for_thread(), result,
+                                       static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(ready_data)))) {
+                // The queue's fd stays readable until an event is taken. Return to the
+                // guest loop instead of presenting the same input readiness indefinitely.
+                return finish(kPollWake);
+            }
             if (result < 0 && input_probe) {
                 // A wake-up with an input queue holding events is that queue reporting itself.
                 std::uint64_t real = 0;
@@ -718,6 +740,7 @@ struct HostLooper::Impl {
                     if (looper_it != loopers.end()) real = looper_it->second->real;
                 }
                 if (const std::optional<InputReady> ready = input_probe(real)) {
+                    report_queue_probe_ident.fetch_add(1, std::memory_order_relaxed);
                     result = ready->ident;
                     ready_fd = -1;
                     ready_events = kEventInput;
@@ -750,6 +773,7 @@ struct HostLooper::Impl {
                     if (looper_it != loopers.end()) real_handle = looper_it->second->real;
                 }
                 if (const std::optional<InputReady> ready = input_probe(real_handle)) {
+                    report_queue_probe_ident.fetch_add(1, std::memory_order_relaxed);
                     if (out_fd != 0) write_guest_word(out_fd, static_cast<std::uint32_t>(-1));
                     if (out_events != 0) write_guest_word(out_events, static_cast<std::uint32_t>(kEventInput));
                     if (out_data != 0) write_guest_word(out_data, ready->data);
@@ -854,6 +878,10 @@ std::int32_t HostLooper::owner_of(std::uint32_t looper_handle) {
 
 void HostLooper::set_input_probe(InputProbe probe) {
     impl_->input_probe = std::move(probe);
+}
+
+void HostLooper::set_platform_input_filter(PlatformInputFilter filter) {
+    impl_->platform_input_filter = std::move(filter);
 }
 
 bool HostLooper::ensure_real_looper(GuestThread& thread, std::uint32_t looper_handle, std::uint64_t& real) {
