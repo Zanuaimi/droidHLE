@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 90
     env:
       ANDROID_NDK_HOME: ${{ github.workspace }}/.android-ndk
+      NDK_HOST: linux-x86_64
     steps:
       - uses: actions/checkout@v4
         with:
