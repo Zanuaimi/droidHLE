@@ -51,12 +51,14 @@ jobs:
           path: sysroot
           key: arm32-sysroot-${{ hashFiles('tools/extract_sysroot.sh') }}
 
-      - name: Check arm32 sysroot
+      - name: Extract arm32 sysroot
         run: |
           if [ ! -f sysroot/system/lib/libc.so ]; then
-            echo "sysroot/ is missing. Run tools/extract_sysroot.sh from an AOSP GSI, then cache it under the key above." >&2
-            exit 1
+            sudo apt-get install -y --no-install-recommends e2fsprogs unzip curl
+            tools/extract_sysroot.sh
+            rm -rf .cache/gsi
           fi
+          test -f sysroot/system/lib/libc.so
 
       - name: Build Android core
         run: |
